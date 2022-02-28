@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # Must issue exit-safe-start before first movement command after energizing motor
+# Add a few notes
 
 import sys,os,argparse, time
 #import smbus
