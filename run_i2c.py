@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 # Must issue exit-safe-start before first movement command after energizing motor
-# Add a few notes
 
 import sys,os,argparse, time
 #import smbus
 from smbus2 import SMBus, i2c_msg
 from argparse import RawTextHelpFormatter
+import RPi.GPIO as GPIO
 
 op = argparse.ArgumentParser(allow_abbrev=False, formatter_class=RawTextHelpFormatter, description="""
 Description of script goes here
@@ -192,6 +192,12 @@ class TicI2C(object):
 dev_addr = 14
 i2c = SMBus(1 if opts.port == 3 else 4)
 tic = TicI2C(i2c, dev_addr)
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(14, GPIO.IN) # U1-ERR
+GPIO.setup(25, GPIO.IN) # U1-RST
+GPIO.setup(19, GPIO.IN) # U2-ERR
+GPIO.setup(16, GPIO.IN) # U2-RST
 
 if opts.reset:
   tic.command(set_reset)
