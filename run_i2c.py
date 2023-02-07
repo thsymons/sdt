@@ -193,11 +193,19 @@ dev_addr = 14
 i2c = SMBus(1 if opts.port == 3 else 4)
 tic = TicI2C(i2c, dev_addr)
 
+GPIO.cleanup()
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(14, GPIO.IN) # U1-ERR
 GPIO.setup(25, GPIO.IN) # U1-RST
 GPIO.setup(19, GPIO.IN) # U2-ERR
 GPIO.setup(16, GPIO.IN) # U2-RST
+GPIO.setup(12, GPIO.OUT) # External display - SDA
+GPIO.setup(13, GPIO.OUT) # External display - SCL
+for i in range(1,1000):
+    GPIO.output(13, GPIO.HIGH)
+    time.sleep(0.1)
+    GPIO.output(13, GPIO.LOW)
+    time.sleep(0.1)
 
 if opts.reset:
   tic.command(set_reset)
