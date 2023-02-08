@@ -34,6 +34,7 @@ op.add_argument('--acc',              help='Set acceleration')
 op.add_argument('--speed',            help='Set max speed')
 op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
+op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
 op.add_argument('-X',                 help='Show commands, but do not execute',action='store_true')
 op.add_argument('cmdline',            help='Positional arguments',nargs='*')
 opts = op.parse_args(sys.argv[1:])
@@ -82,6 +83,7 @@ class TicI2C(object):
   def set_target_position(self, target, sleep=0.5):
     print("Set target position=", target)
     self.command(set_reset_timeout)
+    GPIO.output(27, 1)
     command = [0xE0,
       target >> 0 & 0xFF,
       target >> 8 & 0xFF,
@@ -90,6 +92,7 @@ class TicI2C(object):
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
     self.wait_for_motor(sleep)
+    GPIO.output(27, 0)
  
   # Gets one or more variables from the Tic.
   def get_variables(self, offset, length):
@@ -193,19 +196,31 @@ dev_addr = 14
 i2c = SMBus(1 if opts.port == 3 else 4)
 tic = TicI2C(i2c, dev_addr)
 
-GPIO.cleanup()
+# Configure GPIO pins
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(14, GPIO.IN) # U1-ERR
 GPIO.setup(25, GPIO.IN) # U1-RST
 GPIO.setup(19, GPIO.IN) # U2-ERR
 GPIO.setup(16, GPIO.IN) # U2-RST
-GPIO.setup(12, GPIO.OUT) # External display - SDA
-GPIO.setup(13, GPIO.OUT) # External display - SCL
-for i in range(1,1000):
-    GPIO.output(13, GPIO.HIGH)
-    time.sleep(0.1)
-    GPIO.output(13, GPIO.LOW)
-    time.sleep(0.1)
+GPIO.setup(27, GPIO.OUT) # SC_EN
+GPIO.setup( 4, GPIO.OUT) # TC_EN
+GPIO.output(27, 0)
+GPIO.output(4, 0)
+
+if opts.test_gpio:
+    print("Running GPIO test loop...")
+    GPIO.setup(12, GPIO.OUT) # External display - SDA
+    GPIO.setup(13, GPIO.OUT) # External display - SCL
+    for i in range(1,1000):
+        GPIO.output(27, GPIO.HIGH)
+        GPIO.output(13, GPIO.HIGH)
+        time.sleep(0.1)
+        GPIO.output(27, GPIO.LOW)
+        GPIO.output(13, GPIO.LOW)
+        time.sleep(0.1)
+    GPIO.cleanup()
+    print("GPIO test loop complete")
+    sys.exit()
 
 if opts.reset:
   tic.command(set_reset)
