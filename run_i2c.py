@@ -71,8 +71,10 @@ class TicI2C(object):
   def de_energize(self):
       self.command(0x86)
       print("Motor de-energized")
+      GPIO.output(27, 0)
 
   def energize(self):
+      GPIO.output(27, 1)
       self.command(0x85)
       print("Motor energized")
 
@@ -83,7 +85,6 @@ class TicI2C(object):
   def set_target_position(self, target, sleep=0.5):
     print("Set target position=", target)
     self.command(set_reset_timeout)
-    GPIO.output(27, 1)
     command = [0xE0,
       target >> 0 & 0xFF,
       target >> 8 & 0xFF,
@@ -92,7 +93,6 @@ class TicI2C(object):
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
     self.wait_for_motor(sleep)
-    GPIO.output(27, 0)
  
   # Gets one or more variables from the Tic.
   def get_variables(self, offset, length):
@@ -196,27 +196,37 @@ dev_addr = 14
 i2c = SMBus(1 if opts.port == 3 else 4)
 tic = TicI2C(i2c, dev_addr)
 
+U1_ERR_PIN = 14
+U1_RST_PIN = 25
+U2_ERR_PIN = 19
+U2_RST_PIN = 16
+SC_EN_PIN = 27
+TC_EN_PIN = 4
+XD_SDA_PIN = 12 # External display
+XD_SCL_PIN = 13 # External display
+
 # Configure GPIO pins
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(14, GPIO.IN) # U1-ERR
-GPIO.setup(25, GPIO.IN) # U1-RST
-GPIO.setup(19, GPIO.IN) # U2-ERR
-GPIO.setup(16, GPIO.IN) # U2-RST
-GPIO.setup(27, GPIO.OUT) # SC_EN
-GPIO.setup( 4, GPIO.OUT) # TC_EN
-GPIO.output(27, 0)
-GPIO.output(4, 0)
+GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(U1_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(U2_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(U2_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(SC_EN_PIN, GPIO.OUT)
+GPIO.setup(TC_EN_PIN, GPIO.OUT)
+GPIO.setup(XD_SDA_PIN, GPIO.OUT)
+GPIO.setup(XD_SCL_PIN, GPIO.OUT)
+
+GPIO.output(SC_EN_PIN, 0)
+GPIO.output(TC_EN_PIN, 0)
 
 if opts.test_gpio:
     print("Running GPIO test loop...")
-    GPIO.setup(12, GPIO.OUT) # External display - SDA
-    GPIO.setup(13, GPIO.OUT) # External display - SCL
     for i in range(1,1000):
-        GPIO.output(27, GPIO.HIGH)
-        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(SC_EN_PIN, GPIO.HIGH)
+        GPIO.output(XD_SCL_PIN, GPIO.HIGH)
         time.sleep(0.1)
-        GPIO.output(27, GPIO.LOW)
-        GPIO.output(13, GPIO.LOW)
+        GPIO.output(SC_EN_PIN, GPIO.LOW)
+        GPIO.output(XD_SCL_PIN, GPIO.LOW)
         time.sleep(0.1)
     GPIO.cleanup()
     print("GPIO test loop complete")
