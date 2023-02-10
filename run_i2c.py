@@ -204,6 +204,8 @@ SC_EN_PIN = 27
 TC_EN_PIN = 4
 XD_SDA_PIN = 12 # External display
 XD_SCL_PIN = 13 # External display
+GREEN_LED_PIN = 22
+RED_LED_PIN = 10
 
 # Configure GPIO pins
 GPIO.setmode(GPIO.BCM)
@@ -215,12 +217,18 @@ GPIO.setup(SC_EN_PIN, GPIO.OUT)
 GPIO.setup(TC_EN_PIN, GPIO.OUT)
 GPIO.setup(XD_SDA_PIN, GPIO.OUT)
 GPIO.setup(XD_SCL_PIN, GPIO.OUT)
+GPIO.setup(GREEN_LED_PIN, GPIO.OUT)
+GPIO.setup(RED_LED_PIN, GPIO.OUT)
 
 GPIO.output(SC_EN_PIN, 0)
 GPIO.output(TC_EN_PIN, 0)
+GPIO.output(GREEN_LED_PIN, 0)
+GPIO.output(RED_LED_PIN, 0)
 
 if opts.test_gpio:
     print("Running GPIO test loop...")
+    count = 10
+    led = 0
     for i in range(1,1000):
         GPIO.output(SC_EN_PIN, GPIO.HIGH)
         GPIO.output(XD_SCL_PIN, GPIO.HIGH)
@@ -228,6 +236,12 @@ if opts.test_gpio:
         GPIO.output(SC_EN_PIN, GPIO.LOW)
         GPIO.output(XD_SCL_PIN, GPIO.LOW)
         time.sleep(0.1)
+        count -= 1
+        if count == 0:
+            led = 1 if led==0 else 0
+            GPIO.output(GREEN_LED_PIN, led)
+            count = 10
+
     GPIO.cleanup()
     print("GPIO test loop complete")
     sys.exit()
