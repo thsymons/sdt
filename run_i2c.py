@@ -280,16 +280,18 @@ print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
     tic.set32(set_target_velocity, 0)
-    tic.set32(set_max_speed, 80000000)
-    tic.set32(set_max_accel, 80000)
+    tic.set32(set_max_speed, 200000000)
+    tic.set32(set_max_accel, 200000)
     tic.set32(set_max_decel, 0) # 0->matches acceleration
-    tic.set32(set_starting_speed, 1000)
+    tic.set32(set_starting_speed, 4000)
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
     tic.command(set_reset_timeout)
 
 """
-speed, accel, starting speed, current
+speed, accel, starting speed, current, usteps
+TC: 200M, 200K, 4K, 2A, 8 <- OK
+
 249: dramatically better than 36v4
 good 1M, 8k, 50k, 30
 good 1M, 10k, 50k, 30
