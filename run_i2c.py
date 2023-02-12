@@ -56,9 +56,10 @@ set_reset_timeout = 0x8c
 set_reset = 0xB0
 
 class TicI2C(object):
-  def __init__(self, bus, address):
+  def __init__(self, bus, address, en_pin):
     self.bus = bus
     self.address = address
+    self.en_pin = en_pin
  
   # Sends the "Exit safe start" command.
   def exit_safe_start(self):
@@ -71,10 +72,10 @@ class TicI2C(object):
   def de_energize(self):
       self.command(0x86)
       print("Motor de-energized")
-      GPIO.output(SC_EN_PIN, 0)
+      GPIO.output(en_pin, 1)
 
   def energize(self):
-      GPIO.output(SC_EN_PIN, 1)
+      GPIO.output(en_pin, 0)
       self.command(0x85)
       print("Motor energized")
 
@@ -192,10 +193,6 @@ class TicI2C(object):
         self.step(right_step)
         self.wait(0.5,2)
 
-dev_addr = 14
-i2c = SMBus(1 if opts.port == 3 else 4)
-tic = TicI2C(i2c, dev_addr)
-
 U1_ERR_PIN = 14
 U1_RST_PIN = 25
 U2_ERR_PIN = 19
@@ -206,6 +203,15 @@ XD_SDA_PIN = 12 # External display
 XD_SCL_PIN = 13 # External display
 GREEN_LED_PIN = 22
 RED_LED_PIN = 10
+
+dev_addr = 14
+if opts.port == 3:
+    i2c = SMBus(1)
+    en_pin = TC_EN_PIN
+else:
+    i2c = SMBus(4)
+    en_pin = SC_EN_PIN
+tic = TicI2C(i2c, dev_addr, en_pin)
 
 # Configure GPIO pins
 GPIO.setmode(GPIO.BCM)
