@@ -71,10 +71,10 @@ class TicI2C(object):
   def de_energize(self):
       self.command(0x86)
       print("Motor de-energized")
-      GPIO.output(27, 0)
+      GPIO.output(SC_EN_PIN, 0)
 
   def energize(self):
-      GPIO.output(27, 1)
+      GPIO.output(SC_EN_PIN, 1)
       self.command(0x85)
       print("Motor energized")
 
