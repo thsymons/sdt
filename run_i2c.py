@@ -211,7 +211,7 @@ RED_LED_PIN = 10
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(U1_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(U2_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(U2_ERR_PIN, GPIO.OUT)
 GPIO.setup(U2_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(SC_EN_PIN, GPIO.OUT)
 GPIO.setup(TC_EN_PIN, GPIO.OUT)
@@ -224,6 +224,7 @@ GPIO.output(SC_EN_PIN, 0)
 GPIO.output(TC_EN_PIN, 0)
 GPIO.output(GREEN_LED_PIN, 0)
 GPIO.output(RED_LED_PIN, 0)
+GPIO.output(U2_ERR_PIN, 0)
 
 if opts.test_gpio:
     print("Running GPIO test loop...")
