@@ -280,8 +280,8 @@ print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
     tic.set32(set_target_velocity, 0)
-    tic.set32(set_max_speed, 8000000)
-    tic.set32(set_max_accel, 20000)
+    tic.set32(set_max_speed, 80000000)
+    tic.set32(set_max_accel, 80000)
     tic.set32(set_max_decel, 0) # 0->matches acceleration
     tic.set32(set_starting_speed, 1000)
     tic.set8(set_step_mode, 0)
