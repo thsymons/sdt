@@ -307,14 +307,14 @@ if opts.config:
     tic.set8(set_current_limit, 30)
     if opts.rc:
         tic.set8(set_command_mode, 2)
-        tic.set8(set_rc_input_scaling_degree, 1)
+        tic.set8(set_rc_input_scaling_degree, 2)
         tic.set8(set_rc_invert_input_direction, 0)
-        tic.set16(set_rc_input_minimum, 300)
-        tic.set16(set_rc_input_maximum, 300)
-        tic.set16(set_rc_neutral_minimum, 0)
-        tic.set16(set_rc_neutral_maximum, 0)
-        tic.set32(set_rc_target_minimum, -300)
-        tic.set32(set_rc_target_maximum, 300)
+        tic.set16(set_rc_input_minimum, 0)
+        tic.set16(set_rc_input_maximum, 4000)
+        tic.set16(set_rc_neutral_minimum, 2436)
+        tic.set16(set_rc_neutral_maximum, 2511)
+        tic.set32(set_rc_target_minimum, -200000)
+        tic.set32(set_rc_target_maximum, 200000)
     tic.command(set_reset_timeout)
 
 """
