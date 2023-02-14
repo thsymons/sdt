@@ -158,7 +158,7 @@ class TicI2C(object):
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
 
-   def set32(self, offset, data):
+  def set32(self, offset, data):
     command = [offset,
       data >> 0 & 0xFF,
       data >> 8 & 0xFF,
@@ -297,7 +297,7 @@ print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
     if not opts.rc:
-        tic.set8(set_control_mode, 0)
+        tic.set8(set_command_mode, 0)
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
@@ -306,7 +306,7 @@ if opts.config:
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
     if opts.rc:
-        tic.set8(set_control_mode, 2)
+        tic.set8(set_command_mode, 2)
         tic.set8(set_rc_input_scaling_degree, 1)
         tic.set8(set_rc_invert_input_direction, 0)
         tic.set16(set_rc_input_minimum, 300)
