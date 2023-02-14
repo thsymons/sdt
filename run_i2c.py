@@ -296,8 +296,8 @@ print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
-    if not opts.rc:
-        tic.set8(set_command_mode, 0)
+#    if not opts.rc:
+#        tic.set8(set_command_mode, 0)
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
