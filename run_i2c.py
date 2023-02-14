@@ -17,6 +17,7 @@ op.add_argument('--clr',              help='Clear errors occurred, reset timeout
 op.add_argument('--stop',             help='Stop and set position', type=int)
 op.add_argument('--ess',              help='Exit safe start', action='store_true')
 op.add_argument('--config',           help='Set standard configuration', action='store_true')
+op.add_argument('--rc',               help='Enable RC control mode', action='store_true')
 op.add_argument('--mqtt',             help='Setup MQTT control loop',action='store_true')
 op.add_argument('--off',              help='De-energize motor',action='store_true')
 op.add_argument('--on',               help='Energize motor',action='store_true')
@@ -44,6 +45,7 @@ get_target_velocity = 0x0E
 get_max_speed = 0x16
 get_current_velocity = 0x26
 
+set_command_mode = 0x01
 set_target_velocity = 0xE3
 set_halt_and_set = 0xEC
 set_current_limit = 0x91
@@ -54,8 +56,14 @@ set_starting_speed = 0x43
 set_step_mode = 0x94
 set_reset_timeout = 0x8c
 set_reset = 0xB0
-set_input_minimum = 0x22
-set_neutral_minimum = 0x24
+set_rc_input_scaling_degree = 0x20
+set_rc_invert_input_direction = 0x21
+set_rc_input_minimum = 0x22
+set_rc_neutral_minimum = 0x24
+set_rc_neutral_maximum = 0x26
+set_rc_input_maximum = 0x28
+set_rc_target_minimum = 0x2A
+set_rc_target_maximum = 0x32
 
 class TicI2C(object):
   def __init__(self, bus, address, en_pin):
@@ -143,7 +151,14 @@ class TicI2C(object):
     write = i2c_msg.write(self.address, [offset, data])
     self.bus.i2c_rdwr(write)
 
-  def set32(self, offset, data):
+  def set16(self, offset, data):
+    command = [offset,
+      data >> 0 & 0xFF,
+      data >> 8 & 0xFF]
+    write = i2c_msg.write(self.address, command)
+    self.bus.i2c_rdwr(write)
+
+   def set32(self, offset, data):
     command = [offset,
       data >> 0 & 0xFF,
       data >> 8 & 0xFF,
@@ -281,6 +296,8 @@ print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
+    if not opts.rc:
+        tic.set8(set_control_mode, 0)
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
@@ -288,6 +305,16 @@ if opts.config:
     tic.set32(set_starting_speed, 4000)
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
+    if opts.rc:
+        tic.set8(set_control_mode, 2)
+        tic.set8(set_rc_input_scaling_degree, 1)
+        tic.set8(set_rc_invert_input_direction, 0)
+        tic.set16(set_rc_input_minimum, 300)
+        tic.set16(set_rc_input_maximum, 300)
+        tic.set16(set_rc_neutral_minimum, 0)
+        tic.set16(set_rc_neutral_maximum, 0)
+        tic.set32(set_rc_target_minimum, -300)
+        tic.set32(set_rc_target_maximum, 300)
     tic.command(set_reset_timeout)
 
 """
