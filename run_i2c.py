@@ -54,6 +54,8 @@ set_starting_speed = 0x43
 set_step_mode = 0x94
 set_reset_timeout = 0x8c
 set_reset = 0xB0
+set_input_minimum = 0x22
+set_neutral_minimum = 0x24
 
 class TicI2C(object):
   def __init__(self, bus, address, en_pin):
