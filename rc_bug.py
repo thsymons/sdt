@@ -3,6 +3,7 @@
 import sys,os, time
 from smbus2 import SMBus, i2c_msg
 
+set_command_mode = 0x01
 set_reset_timeout = 0x8c
 set_rc_input_scaling_degree = 0x20
 set_rc_invert_input_direction = 0x21
