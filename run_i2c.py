@@ -309,6 +309,8 @@ print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
     print('\nConfigure TIC')
+    #tic.command(set_reset_timeout)
+    #tic.exit_safe_start()
     if not opts.rc:
         tic.set8(set_command_mode, 0)
     tic.errors_occurred(msg='set command mode')
@@ -324,15 +326,15 @@ if opts.config:
     tic.set8(set_current_limit, 30)
     tic.errors_occurred(msg='set current limit')
     if opts.rc:
-        tic.set8(set_command_mode, 2)
         tic.set8(set_rc_input_scaling_degree, 1)
         tic.set8(set_rc_invert_input_direction, 1)
-        tic.set16(set_rc_input_minimum, 1393)
-        tic.set16(set_rc_input_maximum, 3102)
-        tic.set16(set_rc_neutral_minimum, 2330)
-        tic.set16(set_rc_neutral_maximum, 2405)
-        tic.set32(set_rc_target_minimum, -2000)
+        tic.set32(set_rc_input_minimum, 1393) # 16 ?
+        tic.set32(set_rc_input_maximum, 3102) # 16 ?
+        tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+        tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
+        tic.set32(set_rc_target_minimum, -2000) 
         tic.set32(set_rc_target_maximum, 2000)
+        tic.set8(set_command_mode, 2)
         print('RC mode setup')
     tic.command(set_reset_timeout)
     tic.errors_occurred()
