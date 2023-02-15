@@ -124,7 +124,9 @@ class TicI2C(object):
       if errors & 0x80: print(">>Safe start violation")
       if errors & 0x100: print(">>ERR line high")
 
-  def errors_occurred(self, report=True):
+  def errors_occurred(self, report=True, msg=None):
+    if msg is not None:
+        print(msg)
     write = i2c_msg.write(self.address, [0xA2, 0x04])
     read = i2c_msg.read(self.address, 4)
     self.bus.i2c_rdwr(write, read)
@@ -306,15 +308,21 @@ print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
+    print('\nConfigure TIC')
     if not opts.rc:
         tic.set8(set_command_mode, 0)
+    tic.errors_occurred(msg='set command mode')
     tic.set32(set_target_velocity, 0)
+    tic.errors_occurred(msg='set target velocity')
     tic.set32(set_max_speed, 200000000)
+    tic.errors_occurred(msg='set max speed')
     tic.set32(set_max_accel, 200000)
     tic.set32(set_max_decel, 0) # 0->matches acceleration
     tic.set32(set_starting_speed, 4000)
+    tic.errors_occurred(msg='set starting speed')
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
+    tic.errors_occurred(msg='set current limit')
     if opts.rc:
         tic.set8(set_command_mode, 2)
         tic.set8(set_rc_input_scaling_degree, 1)
@@ -325,7 +333,10 @@ if opts.config:
         tic.set16(set_rc_neutral_maximum, 2405)
         tic.set32(set_rc_target_minimum, -2000)
         tic.set32(set_rc_target_maximum, 2000)
+        print('RC mode setup')
     tic.command(set_reset_timeout)
+    tic.errors_occurred()
+    print("Configuration complete\n")
 
 """
 speed, accel, starting speed, current, usteps
@@ -400,8 +411,8 @@ if opts.test:
     for i in range(3):
         tic.step(100);
 
-if opts.rc:
-    tic.wait_forever()
+#if opts.rc:
+#    tic.wait_forever()
 
 position = tic.get_current_position()
 print("Current position is %d" % position)
