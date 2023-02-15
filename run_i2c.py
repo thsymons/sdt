@@ -296,8 +296,8 @@ print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
 if opts.config:
-#    if not opts.rc:
-#        tic.set8(set_command_mode, 0)
+    if not opts.rc:
+        tic.set8(set_command_mode, 0)
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
@@ -307,14 +307,14 @@ if opts.config:
     tic.set8(set_current_limit, 30)
     if opts.rc:
         tic.set8(set_command_mode, 2)
-        tic.set8(set_rc_input_scaling_degree, 2)
-        tic.set8(set_rc_invert_input_direction, 0)
-        tic.set16(set_rc_input_minimum, 0)
-        tic.set16(set_rc_input_maximum, 4000)
-        tic.set16(set_rc_neutral_minimum, 2436)
-        tic.set16(set_rc_neutral_maximum, 2511)
-        tic.set32(set_rc_target_minimum, -200000)
-        tic.set32(set_rc_target_maximum, 200000)
+        tic.set8(set_rc_input_scaling_degree, 1)
+        tic.set8(set_rc_invert_input_direction, 1)
+        tic.set16(set_rc_input_minimum, 1393)
+        tic.set16(set_rc_input_maximum, 3102)
+        tic.set16(set_rc_neutral_minimum, 2330)
+        tic.set16(set_rc_neutral_maximum, 2405)
+        tic.set32(set_rc_target_minimum, -2000)
+        tic.set32(set_rc_target_maximum, 2000)
     tic.command(set_reset_timeout)
 
 """
