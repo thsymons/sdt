@@ -47,10 +47,12 @@ class TicI2C(object):
         self.report_status(errors, "Errors occurred:")
 
   def set8(self, offset, data):
+    time.sleep(0.1)
     write = i2c_msg.write(self.address, [offset, data])
     self.bus.i2c_rdwr(write)
 
   def set32(self, offset, data):
+    time.sleep(0.1)
     command = [offset,
       data >> 0 & 0xFF,
       data >> 8 & 0xFF,
@@ -62,6 +64,8 @@ class TicI2C(object):
 i2c = SMBus(1)
 tic = TicI2C(i2c, 14)
 
+tic.set8(set_command_mode, 2)
+tic.set8(set_command_mode, 2)
 tic.set8(set_rc_input_scaling_degree, 1)
 tic.set8(set_rc_invert_input_direction, 1)
 tic.set32(set_rc_input_minimum, 1393)
@@ -70,7 +74,6 @@ tic.set32(set_rc_neutral_minimum, 2330)
 tic.set32(set_rc_neutral_maximum, 2405)
 tic.set32(set_rc_target_minimum, -2000) 
 tic.set32(set_rc_target_maximum, 2000)
-tic.set8(set_command_mode, 2)
 tic.command(set_reset_timeout)
 tic.errors_occurred()
 
