@@ -152,6 +152,8 @@ class TicI2C(object):
   def set8(self, offset, data):
     write = i2c_msg.write(self.address, [offset, data])
     self.bus.i2c_rdwr(write)
+    rdata = self.get8(offset)
+    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata)
 
   def set16(self, offset, data):
     command = [offset,
@@ -168,6 +170,8 @@ class TicI2C(object):
       data >> 24 & 0xFF]
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
+    rdata = self.get32(offset)
+    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata)
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -326,15 +330,22 @@ if opts.config:
     tic.set8(set_current_limit, 30)
     tic.errors_occurred(msg='set current limit')
     if opts.rc:
+        tic.set8(set_command_mode, 2)
+        tic.set8(set_command_mode, 2)
         tic.set8(set_rc_input_scaling_degree, 1)
         tic.set8(set_rc_invert_input_direction, 1)
         tic.set32(set_rc_input_minimum, 1393) # 16 ?
+        tic.set32(set_rc_input_minimum, 1393) # 16 ?
+        tic.set32(set_rc_input_maximum, 3102) # 16 ?
         tic.set32(set_rc_input_maximum, 3102) # 16 ?
         tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+        tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+        tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
         tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
         tic.set32(set_rc_target_minimum, -2000) 
+        tic.set32(set_rc_target_minimum, -2000) 
         tic.set32(set_rc_target_maximum, 2000)
-        tic.set8(set_command_mode, 2)
+        tic.set32(set_rc_target_maximum, 2000)
         print('RC mode setup')
     tic.command(set_reset_timeout)
     tic.errors_occurred()
