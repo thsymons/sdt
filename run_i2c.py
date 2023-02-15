@@ -202,6 +202,16 @@ class TicI2C(object):
         self.command(set_reset_timeout)
     print("done")
 
+  def wait_forever(self, sleep=0.5):
+    done = False
+    print("Wait forever", end='')
+    while not done:
+        time.sleep(sleep)
+        print(".", end='')
+        sys.stdout.flush()
+        #print(f"Current velocity: >{velocity}<")
+        self.command(set_reset_timeout)
+
   def lrc(self, left_step, right_step, count):
     for i in range(int(count)):
         print('Exeuting lrc: left=%s right=%s i=%d of %s' % (left_step, right_step, i, count))
@@ -389,6 +399,9 @@ if opts.test:
     tic.errors_occurred()
     for i in range(3):
         tic.step(100);
+
+if opts.rc:
+    tic.wait_forever()
 
 position = tic.get_current_position()
 print("Current position is %d" % position)
