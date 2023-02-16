@@ -65,11 +65,147 @@ set_rc_input_maximum = 0x28
 set_rc_target_minimum = 0x2A
 set_rc_target_maximum = 0x32
 
+# Note: I2C is disabled
+# To enable:  sudo raspi-config nonint do_i2c 0
+# or set to 1 to disable, yes, 1=disable, 0=enable
+class SMBus(object):
+
+    pin_SCL = 0
+    pin_SDA = 0
+    delay = 0.001
+
+    def __init__(self, bus=-1):
+        #GPIO.setwarnings(False)
+        #GPIO.setmode(GPIO.BOARD)
+        self.set_pin(3, 5)
+        self.device = 14
+        self.start()
+
+    def set_pin(self, SDA, SCL):
+        self.pin_SCL = SCL
+        self.pin_SDA = SDA
+        GPIO.setup(self.pin_SCL, GPIO.OUT)
+        time.sleep(self.delay)
+
+    def start(self):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+        GPIO.output(self.pin_SDA, GPIO.HIGH)
+        GPIO.output(self.pin_SCL, GPIO.HIGH)
+        time.sleep(self.delay)
+        GPIO.output(self.pin_SDA, GPIO.LOW)
+        time.sleep(self.delay)
+
+    def repeated_start(self):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+        GPIO.output(self.pin_SCL, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.HIGH)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SCL, GPIO.HIGH)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.LOW)
+        time.sleep(self.delay)
+
+    def stop(self):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+        GPIO.output(self.pin_SCL, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SCL, GPIO.HIGH)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.HIGH)
+        time.sleep(self.delay)
+
+    def send_ack(self):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+        GPIO.output(self.pin_SCL, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SCL, GPIO.HIGH)
+        time.sleep(self.delay)
+
+    def send_nack(self):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+        GPIO.output(self.pin_SCL, GPIO.LOW)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SDA, GPIO.HIGH)
+        time.sleep(self.delay/2)
+        GPIO.output(self.pin_SCL, GPIO.HIGH)
+        time.sleep(self.delay)
+
+    def send_byte(self, byte):
+        GPIO.setup(self.pin_SDA, GPIO.OUT)
+
+        for i in range(8):
+            GPIO.output(self.pin_SCL, GPIO.LOW)
+            time.sleep(self.delay)
+            GPIO.output(self.pin_SDA, byte & 0b10000000)
+            time.sleep(self.delay/2)
+            GPIO.output(self.pin_SCL, GPIO.HIGH)
+            time.sleep(self.delay)
+            byte = byte << 1
+
+        self.send_ack()
+
+    def receive_byte(self):
+        byte = ''
+
+        for i in range(8):
+            GPIO.setup(self.pin_SDA, GPIO.OUT)
+            GPIO.output(self.pin_SCL, GPIO.LOW)
+            GPIO.output(self.pin_SDA, GPIO.HIGH)
+            time.sleep(self.delay)
+            GPIO.output(self.pin_SCL, GPIO.HIGH)
+            time.sleep(self.delay/2)
+            GPIO.setup(self.pin_SDA, GPIO.IN)
+            byte = byte + str(GPIO.input(self.pin_SDA))
+            time.sleep(self.delay)
+
+        byte = int(byte, 2)
+        return byte
+
+
+    def write_byte_data(self, address, byte):
+        self.start()
+        self.send_byte(self.device*2+0)
+        self.send_byte(address)
+        self.send_byte(byte)
+        self.stop()
+
+    def write32(self, address, data):
+        self.start()
+        self.send_byte(self.device*2+0)
+        self.send_byte(address)
+        self.send_byte(data & 0xFF)
+        self.send_byte(data >> 8 & 0xFF)
+        self.send_byte(data >> 16 & 0xFF)
+        self.send_byte(data >> 24 & 0xFF)
+        self.stop()
+
+    def read_byte_data(self, DEVICE, address):
+        self.start()
+        self.send_byte(DEVICE*2+0)
+        self.send_byte(address)
+
+        self.repeated_start()
+
+        self.send_byte(DEVICE*2+1)
+        byte = self.receive_byte()
+        self.send_nack()
+        self.stop()
+
+        return byte
+
 class TicI2C(object):
+
   def __init__(self, bus, address, en_pin):
     self.bus = bus
     self.address = address
     self.en_pin = en_pin
+    self.i2c = SMBus()
+    self.bit_bang = 1
  
   # Sends the "Exit safe start" command.
   def exit_safe_start(self):
@@ -150,10 +286,11 @@ class TicI2C(object):
       return data
 
   def set8(self, offset, data):
-    write = i2c_msg.write(self.address, [offset, data])
-    self.bus.i2c_rdwr(write)
-    rdata = self.get8(offset)
-    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata)
+    if self.bit_bang:
+        self.i2c.write_byte_data(offset, data)
+    else:
+        write = i2c_msg.write(self.address, [offset, data])
+        self.bus.i2c_rdwr(write)
 
   def set16(self, offset, data):
     command = [offset,
@@ -163,15 +300,16 @@ class TicI2C(object):
     self.bus.i2c_rdwr(write)
 
   def set32(self, offset, data):
-    command = [offset,
-      data >> 0 & 0xFF,
-      data >> 8 & 0xFF,
-      data >> 16 & 0xFF,
-      data >> 24 & 0xFF]
-    write = i2c_msg.write(self.address, command)
-    self.bus.i2c_rdwr(write)
-    rdata = self.get32(offset)
-    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata)
+    if self.bit_bang:
+        self.i2c.write32(offset, data)
+    else:
+        command = [offset,
+          data >> 0 & 0xFF,
+          data >> 8 & 0xFF,
+          data >> 16 & 0xFF,
+          data >> 24 & 0xFF]
+        write = i2c_msg.write(self.address, command)
+        self.bus.i2c_rdwr(write)
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -247,6 +385,7 @@ else:
 tic = TicI2C(i2c, dev_addr, en_pin)
 
 # Configure GPIO pins
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(U1_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -311,7 +450,20 @@ print("--------------")
 print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
-if opts.config:
+if opts.rc:
+    tic.set8(set_command_mode, 2)
+    tic.set8(set_rc_input_scaling_degree, 1)
+    tic.set8(set_rc_invert_input_direction, 1)
+    tic.set32(set_rc_input_minimum, 1393) # 16 ?
+    tic.set32(set_rc_input_maximum, 3102) # 16 ?
+    tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+    tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
+    tic.set32(set_rc_target_minimum, -2000) 
+    tic.set32(set_rc_target_maximum, 2000)
+    print('RC mode setup')
+    sys.exit()
+
+ if opts.config:
     print('\nConfigure TIC')
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
