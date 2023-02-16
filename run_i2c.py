@@ -68,8 +68,7 @@ set_rc_target_maximum = 0x32
 # Note: I2C is disabled
 # To enable:  sudo raspi-config nonint do_i2c 0
 # or set to 1 to disable, yes, 1=disable, 0=enable
-class SMBus(object):
-
+class I2C(object):
     pin_SCL = 0
     pin_SDA = 0
     delay = 0.001
@@ -79,6 +78,7 @@ class SMBus(object):
         #GPIO.setmode(GPIO.BOARD)
         self.set_pin(3, 5)
         self.device = 14
+        self.delay = 0.001
         self.start()
 
     def set_pin(self, SDA, SCL):
@@ -204,7 +204,7 @@ class TicI2C(object):
     self.bus = bus
     self.address = address
     self.en_pin = en_pin
-    self.i2c = SMBus()
+    self.i2c = I2C()
     self.bit_bang = 1
  
   # Sends the "Exit safe start" command.
@@ -286,7 +286,6 @@ class TicI2C(object):
       return data
 
   def set8(self, offset, data):
-<<<<<<< HEAD
     if self.bit_bang:
         self.i2c.write_byte_data(offset, data)
     else:
@@ -311,23 +310,19 @@ class TicI2C(object):
           data >> 24 & 0xFF]
         write = i2c_msg.write(self.address, command)
         self.bus.i2c_rdwr(write)
-=======
-    write = i2c_msg.write(self.address, [offset, data])
-    self.bus.i2c_rdwr(write)
-    rdata = self.get8(offset)
-    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata))
 
   def set32(self, offset, data):
-    command = [offset,
-      data >> 0 & 0xFF,
-      data >> 8 & 0xFF,
-      data >> 16 & 0xFF,
-      data >> 24 & 0xFF]
-    write = i2c_msg.write(self.address, command)
-    self.bus.i2c_rdwr(write)
-    rdata = self.get32(offset)
-    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata))
->>>>>>> cef060f8dae677392fe8e79d0f235d2b26560855
+    if self.bit_bang:
+        self.i2c.write32(offset, data)
+    else:
+        command = [offset,
+          data >> 0 & 0xFF,
+          data >> 8 & 0xFF,
+          data >> 16 & 0xFF,
+          data >> 24 & 0xFF]
+        write = i2c_msg.write(self.address, command)
+        self.bus.i2c_rdwr(write)
+        rdata = self.get32(offset)
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -393,6 +388,9 @@ XD_SCL_PIN = 13 # External display
 GREEN_LED_PIN = 22
 RED_LED_PIN = 10
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+
 dev_addr = 14
 if opts.port == 3:
     i2c = SMBus(1)
@@ -403,8 +401,6 @@ else:
 tic = TicI2C(i2c, dev_addr, en_pin)
 
 # Configure GPIO pins
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
 GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(U1_RST_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(U2_ERR_PIN, GPIO.OUT)
@@ -451,6 +447,27 @@ if opts.status:
   tic.errors_occurred()
   sys.exit()
 
+if opts.rc:
+    print("Begin loop")
+    GPIO.setup(5, GPIO.OUT)
+    while 1:
+        GPIO.output(5, GPIO.HIGH)
+        time.sleep(0.1)
+        GPIO.output(5, GPIO.LOW)
+        time.sleep(0.1)
+    while 1:
+        tic.set8(set_command_mode, 2)
+    tic.set8(set_rc_input_scaling_degree, 1)
+    tic.set8(set_rc_invert_input_direction, 1)
+    tic.set32(set_rc_input_minimum, 1393) # 16 ?
+    tic.set32(set_rc_input_maximum, 3102) # 16 ?
+    tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+    tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
+    tic.set32(set_rc_target_minimum, -2000) 
+    tic.set32(set_rc_target_maximum, 2000)
+    print('RC mode setup')
+    sys.exit()
+
 position = tic.get_current_position()
 print("Planning mode=", tic.get8(0x09))
 print("Current position is %d" % position)
@@ -468,20 +485,7 @@ print("--------------")
 print("Op state=", tic.get8(0x00))
 print("Errors occurred=", tic.get32(0x04))
 
-if opts.rc:
-    tic.set8(set_command_mode, 2)
-    tic.set8(set_rc_input_scaling_degree, 1)
-    tic.set8(set_rc_invert_input_direction, 1)
-    tic.set32(set_rc_input_minimum, 1393) # 16 ?
-    tic.set32(set_rc_input_maximum, 3102) # 16 ?
-    tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
-    tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
-    tic.set32(set_rc_target_minimum, -2000) 
-    tic.set32(set_rc_target_maximum, 2000)
-    print('RC mode setup')
-    sys.exit()
-
- if opts.config:
+if opts.config:
     print('\nConfigure TIC')
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
