@@ -310,6 +310,8 @@ if opts.config:
     #tic.exit_safe_start()
     if not opts.rc:
         tic.set8(set_command_mode, 0)
+    tic.set8(set_command_mode, 0)
+    data = tic.get32(0x00)
     tic.errors_occurred(msg='set command mode')
     tic.set32(set_target_velocity, 0)
     tic.errors_occurred(msg='set target velocity')
