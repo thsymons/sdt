@@ -74,7 +74,3 @@ tic.set32(set_rc_target_maximum, 2000)
 tic.command(set_reset_timeout)
 tic.errors_occurred()
 
-while 1:
-    time.sleep(0.01)
-    tic.set8(set_command_mode, 2)
-
