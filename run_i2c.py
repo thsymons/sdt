@@ -286,6 +286,7 @@ class TicI2C(object):
       return data
 
   def set8(self, offset, data):
+<<<<<<< HEAD
     if self.bit_bang:
         self.i2c.write_byte_data(offset, data)
     else:
@@ -310,6 +311,23 @@ class TicI2C(object):
           data >> 24 & 0xFF]
         write = i2c_msg.write(self.address, command)
         self.bus.i2c_rdwr(write)
+=======
+    write = i2c_msg.write(self.address, [offset, data])
+    self.bus.i2c_rdwr(write)
+    rdata = self.get8(offset)
+    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata))
+
+  def set32(self, offset, data):
+    command = [offset,
+      data >> 0 & 0xFF,
+      data >> 8 & 0xFF,
+      data >> 16 & 0xFF,
+      data >> 24 & 0xFF]
+    write = i2c_msg.write(self.address, command)
+    self.bus.i2c_rdwr(write)
+    rdata = self.get32(offset)
+    print('offset=0x%0x data=%0d rdata=%0d' % (offset, data, rdata))
+>>>>>>> cef060f8dae677392fe8e79d0f235d2b26560855
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -469,6 +487,8 @@ if opts.rc:
     #tic.exit_safe_start()
     if not opts.rc:
         tic.set8(set_command_mode, 0)
+    tic.set8(set_command_mode, 0)
+    data = tic.get32(0x00)
     tic.errors_occurred(msg='set command mode')
     tic.set32(set_target_velocity, 0)
     tic.errors_occurred(msg='set target velocity')
@@ -482,8 +502,18 @@ if opts.rc:
     tic.set8(set_current_limit, 30)
     tic.errors_occurred(msg='set current limit')
     if opts.rc:
+        mode = tic.get8(set_command_mode)
+        print('mode=%0d' % mode)
+        data = tic.get32(0x00)
+        print('0x00 =', data)
+        tic.set8(set_command_mode, 0)
         tic.set8(set_command_mode, 2)
-        tic.set8(set_command_mode, 2)
+        tic.set8(set_command_mode, 1)
+        tic.set8(set_command_mode, 0)
+        data = tic.get32(0x00)
+        print('0x00 =', data)
+        mode = tic.get8(set_command_mode)
+        print('mode=%0d' % mode)
         tic.set8(set_rc_input_scaling_degree, 1)
         tic.set8(set_rc_invert_input_direction, 1)
         tic.set32(set_rc_input_minimum, 1393) # 16 ?
