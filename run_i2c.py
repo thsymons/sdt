@@ -77,8 +77,6 @@ class TicI2C(object):
     self.bus = bus
     self.address = address
     self.en_pin = en_pin
-    self.i2c = I2C()
-    self.bit_bang = 1
  
   # Sends the "Exit safe start" command.
   def exit_safe_start(self):
@@ -159,11 +157,8 @@ class TicI2C(object):
       return data
 
   def set8(self, offset, data):
-    if self.bit_bang:
-        self.i2c.write_byte_data(offset, data)
-    else:
-        write = i2c_msg.write(self.address, [offset, data])
-        self.bus.i2c_rdwr(write)
+    write = i2c_msg.write(self.address, [offset, data])
+    self.bus.i2c_rdwr(write)
 
   def set16(self, offset, data):
     command = [offset,
@@ -173,29 +168,23 @@ class TicI2C(object):
     self.bus.i2c_rdwr(write)
 
   def set32(self, offset, data):
-    if self.bit_bang:
-        self.i2c.write32(offset, data)
-    else:
-        command = [offset,
-          data >> 0 & 0xFF,
-          data >> 8 & 0xFF,
-          data >> 16 & 0xFF,
-          data >> 24 & 0xFF]
-        write = i2c_msg.write(self.address, command)
-        self.bus.i2c_rdwr(write)
+    command = [offset,
+      data >> 0 & 0xFF,
+      data >> 8 & 0xFF,
+      data >> 16 & 0xFF,
+      data >> 24 & 0xFF]
+    write = i2c_msg.write(self.address, command)
+    self.bus.i2c_rdwr(write)
 
   def set32(self, offset, data):
-    if self.bit_bang:
-        self.i2c.write32(offset, data)
-    else:
-        command = [offset,
-          data >> 0 & 0xFF,
-          data >> 8 & 0xFF,
-          data >> 16 & 0xFF,
-          data >> 24 & 0xFF]
-        write = i2c_msg.write(self.address, command)
-        self.bus.i2c_rdwr(write)
-        rdata = self.get32(offset)
+    command = [offset,
+      data >> 0 & 0xFF,
+      data >> 8 & 0xFF,
+      data >> 16 & 0xFF,
+      data >> 24 & 0xFF]
+    write = i2c_msg.write(self.address, command)
+    self.bus.i2c_rdwr(write)
+    rdata = self.get32(offset)
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -321,15 +310,7 @@ if opts.status:
   sys.exit()
 
 if opts.rc:
-    print("Begin loop")
-    GPIO.setup(5, GPIO.OUT)
-    while 1:
-        GPIO.output(5, GPIO.HIGH)
-        time.sleep(0.1)
-        GPIO.output(5, GPIO.LOW)
-        time.sleep(0.1)
-    while 1:
-        tic.set8(set_command_mode, 2)
+    tic.set8(set_command_mode, 2)
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
     tic.set32(set_rc_input_minimum, 1393) # 16 ?
@@ -338,6 +319,9 @@ if opts.rc:
     tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
     tic.set32(set_rc_target_minimum, -2000) 
     tic.set32(set_rc_target_maximum, 2000)
+    tic.energize()
+    tic.errors_occurred()
+    tic.exit_safe_start()
     print('RC mode setup')
     sys.exit()
 
@@ -371,9 +355,6 @@ if opts.config:
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
     tic.command(set_reset_timeout)
-    tic.energize()
-    tic.errors_occurred()
-    tic.exit_safe_start()
     tic.errors_occurred()
     print("Configuration complete\n")
 
