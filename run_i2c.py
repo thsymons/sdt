@@ -68,135 +68,8 @@ set_rc_target_maximum = 0x32
 # Note: I2C is disabled
 # To enable:  sudo raspi-config nonint do_i2c 0
 # or set to 1 to disable, yes, 1=disable, 0=enable
-class I2C(object):
-    pin_SCL = 0
-    pin_SDA = 0
-    delay = 0.001
-
-    def __init__(self, bus=-1):
-        #GPIO.setwarnings(False)
-        #GPIO.setmode(GPIO.BOARD)
-        self.set_pin(3, 5)
-        self.device = 14
-        self.delay = 0.001
-        self.start()
-
-    def set_pin(self, SDA, SCL):
-        self.pin_SCL = SCL
-        self.pin_SDA = SDA
-        GPIO.setup(self.pin_SCL, GPIO.OUT)
-        time.sleep(self.delay)
-
-    def start(self):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-        GPIO.output(self.pin_SDA, GPIO.HIGH)
-        GPIO.output(self.pin_SCL, GPIO.HIGH)
-        time.sleep(self.delay)
-        GPIO.output(self.pin_SDA, GPIO.LOW)
-        time.sleep(self.delay)
-
-    def repeated_start(self):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-        GPIO.output(self.pin_SCL, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.HIGH)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SCL, GPIO.HIGH)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.LOW)
-        time.sleep(self.delay)
-
-    def stop(self):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-        GPIO.output(self.pin_SCL, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SCL, GPIO.HIGH)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.HIGH)
-        time.sleep(self.delay)
-
-    def send_ack(self):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-        GPIO.output(self.pin_SCL, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SCL, GPIO.HIGH)
-        time.sleep(self.delay)
-
-    def send_nack(self):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-        GPIO.output(self.pin_SCL, GPIO.LOW)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SDA, GPIO.HIGH)
-        time.sleep(self.delay/2)
-        GPIO.output(self.pin_SCL, GPIO.HIGH)
-        time.sleep(self.delay)
-
-    def send_byte(self, byte):
-        GPIO.setup(self.pin_SDA, GPIO.OUT)
-
-        for i in range(8):
-            GPIO.output(self.pin_SCL, GPIO.LOW)
-            time.sleep(self.delay)
-            GPIO.output(self.pin_SDA, byte & 0b10000000)
-            time.sleep(self.delay/2)
-            GPIO.output(self.pin_SCL, GPIO.HIGH)
-            time.sleep(self.delay)
-            byte = byte << 1
-
-        self.send_ack()
-
-    def receive_byte(self):
-        byte = ''
-
-        for i in range(8):
-            GPIO.setup(self.pin_SDA, GPIO.OUT)
-            GPIO.output(self.pin_SCL, GPIO.LOW)
-            GPIO.output(self.pin_SDA, GPIO.HIGH)
-            time.sleep(self.delay)
-            GPIO.output(self.pin_SCL, GPIO.HIGH)
-            time.sleep(self.delay/2)
-            GPIO.setup(self.pin_SDA, GPIO.IN)
-            byte = byte + str(GPIO.input(self.pin_SDA))
-            time.sleep(self.delay)
-
-        byte = int(byte, 2)
-        return byte
-
-
-    def write_byte_data(self, address, byte):
-        self.start()
-        self.send_byte(self.device*2+0)
-        self.send_byte(address)
-        self.send_byte(byte)
-        self.stop()
-
-    def write32(self, address, data):
-        self.start()
-        self.send_byte(self.device*2+0)
-        self.send_byte(address)
-        self.send_byte(data & 0xFF)
-        self.send_byte(data >> 8 & 0xFF)
-        self.send_byte(data >> 16 & 0xFF)
-        self.send_byte(data >> 24 & 0xFF)
-        self.stop()
-
-    def read_byte_data(self, DEVICE, address):
-        self.start()
-        self.send_byte(DEVICE*2+0)
-        self.send_byte(address)
-
-        self.repeated_start()
-
-        self.send_byte(DEVICE*2+1)
-        byte = self.receive_byte()
-        self.send_nack()
-        self.stop()
-
-        return byte
+# sudo vim /boot/config.txt
+# i2cdetect -y 1/4
 
 class TicI2C(object):
 
@@ -490,21 +363,17 @@ if opts.config:
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
     tic.set8(set_command_mode, 0)
-    tic.set8(set_command_mode, 0)
-    data = tic.get32(0x00)
-    tic.errors_occurred(msg='set command mode')
     tic.set32(set_target_velocity, 0)
-    tic.errors_occurred(msg='set target velocity')
     tic.set32(set_max_speed, 200000000)
-    tic.errors_occurred(msg='set max speed')
     tic.set32(set_max_accel, 200000)
     tic.set32(set_max_decel, 0) # 0->matches acceleration
     tic.set32(set_starting_speed, 4000)
-    tic.errors_occurred(msg='set starting speed')
     tic.set8(set_step_mode, 0)
     tic.set8(set_current_limit, 30)
-    tic.errors_occurred(msg='set current limit')
     tic.command(set_reset_timeout)
+    tic.energize()
+    tic.errors_occurred()
+    tic.exit_safe_start()
     tic.errors_occurred()
     print("Configuration complete\n")
 
