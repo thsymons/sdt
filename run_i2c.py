@@ -36,6 +36,7 @@ op.add_argument('--speed',            help='Set max speed')
 op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
 op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
+op.add_argument('--i2c_loop',         help='Infinite write loop to I2C', action='store_true')
 op.add_argument('-X',                 help='Show commands, but do not execute',action='store_true')
 op.add_argument('cmdline',            help='Positional arguments',nargs='*')
 opts = op.parse_args(sys.argv[1:])
@@ -301,6 +302,10 @@ if opts.test_gpio:
     print("GPIO test loop complete")
     sys.exit()
 
+if opts.i2c_loop:
+  while 1;
+    tic.set8(set_command_mode, 2)
+
 if opts.reset:
   tic.command(set_reset)
 
@@ -310,6 +315,7 @@ if opts.status:
   sys.exit()
 
 if opts.rc:
+    tic.set8(set_command_mode, 2)
     tic.set8(set_command_mode, 2)
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
@@ -346,6 +352,7 @@ if opts.config:
     print('\nConfigure TIC')
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
+    tic.set8(set_command_mode, 0)
     tic.set8(set_command_mode, 0)
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
