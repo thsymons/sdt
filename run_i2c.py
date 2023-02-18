@@ -319,7 +319,9 @@ if opts.status:
 
 if opts.rc:
     tic.set8(set_command_mode, 2)
+    print("mode=", tic.get8(set_command_mode))
     tic.set8(set_command_mode, 2)
+    print("mode=", tic.get8(set_command_mode))
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
     tic.set32(set_rc_input_minimum, 1393) # 16 ?
@@ -356,7 +358,9 @@ if opts.config:
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
     tic.set8(set_command_mode, 0)
+    print("mode=", tic.get8(set_command_mode))
     tic.set8(set_command_mode, 0)
+    print("mode=", tic.get8(set_command_mode))
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
