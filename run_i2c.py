@@ -285,26 +285,29 @@ if opts.test_gpio:
     print("Running GPIO test loop...")
     count = 10
     led = 0
-    for i in range(1,1000):
-        GPIO.output(SC_EN_PIN, GPIO.HIGH)
+    while 1:
+        #GPIO.output(SC_EN_PIN, GPIO.HIGH)
         GPIO.output(XD_SCL_PIN, GPIO.HIGH)
-        time.sleep(0.1)
-        GPIO.output(SC_EN_PIN, GPIO.LOW)
+        #time.sleep(0.1)
+        #GPIO.output(SC_EN_PIN, GPIO.LOW)
         GPIO.output(XD_SCL_PIN, GPIO.LOW)
-        time.sleep(0.1)
+        #time.sleep(0.1)
+        continue
         count -= 1
         if count == 0:
             led = 1 if led==0 else 0
             GPIO.output(GREEN_LED_PIN, led)
-            count = 10
+            count = 100
 
     GPIO.cleanup()
     print("GPIO test loop complete")
     sys.exit()
 
 if opts.i2c_loop:
-  while 1;
+  while 1:
+    GPIO.output(XD_SCL_PIN, GPIO.LOW)
     tic.set8(set_command_mode, 2)
+    GPIO.output(XD_SCL_PIN, GPIO.HIGH)
 
 if opts.reset:
   tic.command(set_reset)
