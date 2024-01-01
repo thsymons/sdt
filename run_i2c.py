@@ -93,10 +93,10 @@ class TicI2C(object):
   def de_energize(self):
       self.command(0x86)
       print("Motor de-energized")
-      GPIO.output(en_pin, 1)
+      GPIO.output(self.en_pin, 1)
 
   def energize(self):
-      GPIO.output(en_pin, 0)
+      GPIO.output(self.en_pin, 0)
       self.command(0x85)
       print("Motor energized")
 
@@ -260,7 +260,7 @@ STOP_PIN = 11
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
-tic = null
+tic = None
 dev_addr = 14
 def setup_port(port):
   global tic
@@ -340,6 +340,7 @@ if opts.status:
   sys.exit()
 
 def setup_rc(port):
+    setup_port(port)
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
     tic.set8(set_command_mode, 2)
