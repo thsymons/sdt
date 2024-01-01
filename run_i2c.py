@@ -6,6 +6,7 @@ import sys,os,argparse, time
 from smbus2 import SMBus, i2c_msg
 from argparse import RawTextHelpFormatter
 import RPi.GPIO as GPIO
+from subprocess import call
 
 op = argparse.ArgumentParser(allow_abbrev=False, formatter_class=RawTextHelpFormatter, description="""
 Description of script goes here
@@ -37,6 +38,7 @@ op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
 op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
 op.add_argument('--i2c_loop',         help='Infinite write loop to I2C', action='store_true')
+op.add_argument('--shutdown',         help='Wait for shutdown button', action='store_true')
 op.add_argument('-X',                 help='Show commands, but do not execute',action='store_true')
 op.add_argument('cmdline',            help='Positional arguments',nargs='*')
 opts = op.parse_args(sys.argv[1:])
@@ -158,7 +160,8 @@ class TicI2C(object):
       return data
 
   def set8(self, offset, data):
-    write = i2c_msg.write(self.address, [offset, data])
+    command = [offset, data]
+    write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
 
   def set16(self, offset, data):
@@ -250,6 +253,8 @@ XD_SDA_PIN = 12 # External display
 XD_SCL_PIN = 13 # External display
 GREEN_LED_PIN = 22
 RED_LED_PIN = 10
+GO_PIN = 9
+STOP_PIN = 11
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -274,6 +279,8 @@ GPIO.setup(XD_SDA_PIN, GPIO.OUT)
 GPIO.setup(XD_SCL_PIN, GPIO.OUT)
 GPIO.setup(GREEN_LED_PIN, GPIO.OUT)
 GPIO.setup(RED_LED_PIN, GPIO.OUT)
+GPIO.setup(GO_PIN, GPIO.IN)
+GPIO.setup(STOP_PIN, GPIO.IN)
 
 GPIO.output(SC_EN_PIN, 0)
 GPIO.output(TC_EN_PIN, 0)
@@ -304,10 +311,18 @@ if opts.test_gpio:
     sys.exit()
 
 if opts.i2c_loop:
-  while 1:
-    GPIO.output(XD_SCL_PIN, GPIO.LOW)
-    tic.set8(set_command_mode, 2)
-    GPIO.output(XD_SCL_PIN, GPIO.HIGH)
+    #GPIO.output(XD_SCL_PIN, GPIO.LOW)
+    tic.set8(set_command_mode, 0x2)
+    time.sleep(0.01)
+    #GPIO.output(XD_SCL_PIN, GPIO.HIGH)
+    #tic.errors_occurred()
+    sys.exit()
+
+if opts.shutdown:
+    while True:
+      i = GPIO.input(STOP_PIN)
+      if i == 0:
+         call("sudo nohup shutdown -h now", shell=True)
 
 if opts.reset:
   tic.command(set_reset)
@@ -357,10 +372,8 @@ if opts.config:
     print('\nConfigure TIC')
     #tic.command(set_reset_timeout)
     #tic.exit_safe_start()
-    tic.set8(set_command_mode, 0)
-    print("mode=", tic.get8(set_command_mode))
-    tic.set8(set_command_mode, 0)
-    print("mode=", tic.get8(set_command_mode))
+    #tic.set8(set_command_mode, 0)
+    #print("mode=", tic.get8(set_command_mode))
     tic.set32(set_target_velocity, 0)
     tic.set32(set_max_speed, 200000000)
     tic.set32(set_max_accel, 200000)
