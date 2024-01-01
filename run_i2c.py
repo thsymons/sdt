@@ -19,6 +19,7 @@ op.add_argument('--stop',             help='Stop and set position', type=int)
 op.add_argument('--ess',              help='Exit safe start', action='store_true')
 op.add_argument('--config',           help='Set standard configuration', action='store_true')
 op.add_argument('--rc',               help='Enable RC control mode', action='store_true')
+op.add_argument('--gorc',             help='Setup full RC tractor control', action='store_true')
 op.add_argument('--mqtt',             help='Setup MQTT control loop',action='store_true')
 op.add_argument('--off',              help='De-energize motor',action='store_true')
 op.add_argument('--on',               help='Energize motor',action='store_true')
@@ -259,14 +260,20 @@ STOP_PIN = 11
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 
+tic = null
 dev_addr = 14
-if opts.port == 3:
-    i2c = SMBus(1)
-    en_pin = TC_EN_PIN
-else:
-    i2c = SMBus(4)
-    en_pin = SC_EN_PIN
-tic = TicI2C(i2c, dev_addr, en_pin)
+def setup_port(port):
+  global tic
+  if port == 3:
+      i2c = SMBus(1)
+      en_pin = TC_EN_PIN
+  else:
+      i2c = SMBus(4)
+      en_pin = SC_EN_PIN
+  tic = TicI2C(i2c, dev_addr, en_pin)
+
+if not opts.gorc:
+  setup_port(opts.port)
 
 # Configure GPIO pins
 GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -332,24 +339,41 @@ if opts.status:
   tic.errors_occurred()
   sys.exit()
 
-if opts.rc:
+def setup_rc(port):
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
-    tic.set32(set_rc_input_minimum, 1393) # 16 ?
-    tic.set32(set_rc_input_maximum, 3102) # 16 ?
-    tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
-    tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
-    tic.set32(set_rc_target_minimum, -2000) 
-    tic.set32(set_rc_target_maximum, 2000)
+    if port == 2: # steering control
+      tic.set32(set_rc_input_minimum, 1393) # 16 ?
+      tic.set32(set_rc_input_maximum, 3102) # 16 ?
+      tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+      tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
+      tic.set32(set_rc_target_minimum, -2000) 
+      tic.set32(set_rc_target_maximum, 2000)
+    else: # throttle control
+      tic.set32(set_rc_input_minimum, 1393) # 16 ?
+      tic.set32(set_rc_input_maximum, 3102) # 16 ?
+      tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
+      tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
+      tic.set32(set_rc_target_minimum, -2000) 
+      tic.set32(set_rc_target_maximum, 2000)
     tic.energize()
     tic.errors_occurred()
     tic.exit_safe_start()
-    print('RC mode setup')
-    sys.exit()
+
+if opts.rc:
+  setup_rc(opts.port)
+  print('RC mode setup for port=%s' % 'throttle' if opts.port==3 else 'steering')
+  sys.exit()
+
+if opts.gorc:
+  setup_rc(2) # steering control
+  setup_rc(3) # throttle control
+  print('RC mode setup for steering and throttle control')
+  sys.exit()
 
 position = tic.get_current_position()
 print("Planning mode=", tic.get8(0x09))
