@@ -85,6 +85,9 @@ class TicI2C(object):
     self.address = address
     self.en_pin = en_pin
  
+  def test(self, msg=""):
+      print('Tic %s en_pin=%0d' % (msg, self.en_pin))
+
   # Sends the "Exit safe start" command.
   def exit_safe_start(self):
     self.command(0x83)
@@ -346,6 +349,7 @@ if opts.status:
   sys.exit()
 
 def setup_rc(port):
+    global tic
     tic.command(set_reset)
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
@@ -388,14 +392,14 @@ def go_rc(tic):
   tic.exit_safe_start()
 
 def report_rc(tic):
-  print('max_speed'. tic.get32(set_max_speed)
-  print('max_accel'. tic.get32(set_max_accel)
-  print('input_min'. tic.get32(set_rc_input_minimum)
-  print('input_max'. tic.get32(set_rc_input_maximum)
-  print('neutral_min'. tic.get32(set_rc_neutral_minimum)
-  print('neutral_max'. tic.get32(set_rc_neutral_maximum)
-  print('target_min'. tic.get32(set_rc_target_minimum)
-  print('target_max'. tic.get32(set_rc_target_maximum)
+  print('max_speed', tic.get32(set_max_speed))
+  print('max_accel', tic.get32(set_max_accel))
+  print('input_min', tic.get32(set_rc_input_minimum))
+  print('input_max', tic.get32(set_rc_input_maximum))
+  print('neutral_min', tic.get32(set_rc_neutral_minimum))
+  print('neutral_max', tic.get32(set_rc_neutral_maximum))
+  print('target_min', tic.get32(set_rc_target_minimum))
+  print('target_max', tic.get32(set_rc_target_maximum))
  
 if opts.rc:
   setup_port(port)
