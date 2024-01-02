@@ -257,7 +257,7 @@ class TicI2C(object):
         self.step(right_step)
         self.wait(0.5,2)
 
-win = curses.initscr()
+#win = curses.initscr()
 
 def getchar():
     global win
@@ -363,6 +363,11 @@ if opts.status:
   sys.exit()
 
 def setup_rc(port):
+    """
+    Seems can only set RC parameters in Tic GUI.
+    But can still control other parameters here over i2c.
+    Seems like can also not set command mode over i2c.
+    """
     global tic
     tic.command(set_reset)
     tic.set8(set_command_mode, 2)
@@ -436,12 +441,18 @@ if opts.gorc:
   setup_port(SC_PORT)
   steering = tic
   report_rc(steering)
+  #steering.set8(set_command_mode, 0)
+  steering.set32(set_max_speed, 200000000)
+  steering.set32(set_max_accel, 200000)
+  #steering.set32(set_rc_target_minimum, -4000) 
+  #steering.set32(set_rc_target_maximum, 4000)
+  steering.set8(set_command_mode, 2)
   go_rc(steering)
   go_rc(throttle)
-  while 1:
-      print('RC pulse width: steering: pos=%0d rc=%0d' % (steering.get_current_position(), int(steering.get16(rc_pulse_width)/12)), 
-                           ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
-      time.sleep(2)
+#  while 1:
+#      print('RC pulse width: steering: pos=%0d rc=%0d' % (steering.get_current_position(), int(steering.get16(rc_pulse_width)/12)), 
+#                           ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
+#      time.sleep(2)
   sys.exit()
 
 if opts.alloff:
