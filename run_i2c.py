@@ -19,7 +19,9 @@ op.add_argument('--stop',             help='Stop and set position', type=int)
 op.add_argument('--ess',              help='Exit safe start', action='store_true')
 op.add_argument('--config',           help='Set standard configuration', action='store_true')
 op.add_argument('--rc',               help='Enable RC control mode', action='store_true')
-op.add_argument('--gorc',             help='Setup full RC tractor control', action='store_true')
+op.add_argument('--gorc',             help='Enable full RC tractor control', action='store_true')
+op.add_argument('--setup_rc',         help='Setup full RC tractor control', action='store_true')
+op.add_argument('--alloff',           help='De-energize both ports', action='store_true')
 op.add_argument('--mqtt',             help='Setup MQTT control loop',action='store_true')
 op.add_argument('--off',              help='De-energize motor',action='store_true')
 op.add_argument('--on',               help='Energize motor',action='store_true')
@@ -276,7 +278,7 @@ def setup_port(port):
       en_pin = SC_EN_PIN
   tic = TicI2C(i2c, dev_addr, en_pin)
 
-if not opts.gorc:
+if not (opts.gorc or opts.setup_rc or opts.rc):
   setup_port(opts.port)
 
 # Configure GPIO pins
@@ -344,7 +346,6 @@ if opts.status:
   sys.exit()
 
 def setup_rc(port):
-    setup_port(port)
     tic.command(set_reset)
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
@@ -379,25 +380,57 @@ def setup_rc(port):
       print('Throttle control settings')
       print('  target min=', tic.get32(set_rc_target_minimum))
       print('  target max=', tic.get32(set_rc_target_maximum))
-    tic.energize()
-    tic.errors_occurred()
-    tic.exit_safe_start()
+    time.sleep(1)
 
+def go_rc(tic):
+  tic.energize()
+  tic.errors_occurred()
+  tic.exit_safe_start()
+
+def report_rc(tic):
+  print('max_speed'. tic.get32(set_max_speed)
+  print('max_accel'. tic.get32(set_max_accel)
+  print('input_min'. tic.get32(set_rc_input_minimum)
+  print('input_max'. tic.get32(set_rc_input_maximum)
+  print('neutral_min'. tic.get32(set_rc_neutral_minimum)
+  print('neutral_max'. tic.get32(set_rc_neutral_maximum)
+  print('target_min'. tic.get32(set_rc_target_minimum)
+  print('target_max'. tic.get32(set_rc_target_maximum)
+ 
 if opts.rc:
+  setup_port(port)
   setup_rc(opts.port)
+  go_rc(tic)
   print('RC mode setup for port=%s' % 'throttle' if opts.port==3 else 'steering')
   sys.exit()
 
-if opts.gorc:
+if opts.setup_rc:
+  setup_port(2)
   setup_rc(2) # steering control
-  steering = tic
+  setup_port(3)
   setup_rc(3) # throttle control
-  throttle = tic
   print('RC mode setup for steering and throttle control')
+
+if opts.gorc:
+  setup_port(2)
+  steering = tic
+  report_rc(steering)
+  setup_port(3)
+  throttle = tic
+  report_rc(throttle)
+  go_rc(steering)
+  go_rc(throttle)
   while 1:
       print('RC pulse width: steering: pos=%0d rc=%0d' % (steering.get_current_position(), int(steering.get16(rc_pulse_width)/12)), 
                            ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
       time.sleep(2)
+  sys.exit()
+
+if opts.alloff:
+  setup_rc(2)
+  tic.de_energize()
+  setup_rc(3)
+  tic.de_energize()
   sys.exit()
 
 position = tic.get_current_position()
