@@ -68,6 +68,7 @@ set_rc_neutral_maximum = 0x26
 set_rc_input_maximum = 0x28
 set_rc_target_minimum = 0x2A
 set_rc_target_maximum = 0x32
+rc_pulse_width = 0x3D
 
 # Note: I2C is disabled
 # To enable:  sudo raspi-config nonint do_i2c 0
@@ -164,6 +165,7 @@ class TicI2C(object):
     command = [offset, data]
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
+    time.sleep(0.1)
 
   def set16(self, offset, data):
     command = [offset,
@@ -171,6 +173,7 @@ class TicI2C(object):
       data >> 8 & 0xFF]
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
+    time.sleep(0.1)
 
   def set32(self, offset, data):
     command = [offset,
@@ -180,16 +183,17 @@ class TicI2C(object):
       data >> 24 & 0xFF]
     write = i2c_msg.write(self.address, command)
     self.bus.i2c_rdwr(write)
+    time.sleep(0.1)
 
-  def set32(self, offset, data):
-    command = [offset,
-      data >> 0 & 0xFF,
-      data >> 8 & 0xFF,
-      data >> 16 & 0xFF,
-      data >> 24 & 0xFF]
-    write = i2c_msg.write(self.address, command)
-    self.bus.i2c_rdwr(write)
-    rdata = self.get32(offset)
+#  def set32(self, offset, data):
+#    command = [offset,
+#      data >> 0 & 0xFF,
+#      data >> 8 & 0xFF,
+#      data >> 16 & 0xFF,
+#      data >> 24 & 0xFF]
+#    write = i2c_msg.write(self.address, command)
+#    self.bus.i2c_rdwr(write)
+#    rdata = self.get32(offset)
      
   # Gets the "Current position" variable from the Tic.
   def get_current_position(self):
@@ -341,26 +345,40 @@ if opts.status:
 
 def setup_rc(port):
     setup_port(port)
+    tic.command(set_reset)
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
     tic.set8(set_command_mode, 2)
     print("mode=", tic.get8(set_command_mode))
+    tic.set32(set_halt_and_set, 100000) # set current position = 0
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
     if port == 2: # steering control
-      tic.set32(set_rc_input_minimum, 1393) # 16 ?
-      tic.set32(set_rc_input_maximum, 3102) # 16 ?
-      tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
-      tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
-      tic.set32(set_rc_target_minimum, -2000) 
-      tic.set32(set_rc_target_maximum, 2000)
+      tic.set32(set_starting_speed, 4000)
+      tic.set32(set_max_speed, 100000000)
+      tic.set32(set_max_accel, 20000)
+      tic.set32(set_rc_input_minimum, 1004) # 16 ?
+      tic.set32(set_rc_input_maximum, 1766) # 16 ?
+      tic.set32(set_rc_neutral_minimum, 1265) # 16 ?
+      tic.set32(set_rc_neutral_maximum, 1270) # 16 ?
+      tic.set32(set_rc_target_minimum, -20000) 
+      tic.set32(set_rc_target_maximum, 20000)
+      print('Steering control settings')
+      print('  target min=', tic.get32(set_rc_target_minimum))
+      print('  target max=', tic.get32(set_rc_target_maximum))
     else: # throttle control
-      tic.set32(set_rc_input_minimum, 1393) # 16 ?
-      tic.set32(set_rc_input_maximum, 3102) # 16 ?
-      tic.set32(set_rc_neutral_minimum, 2330) # 16 ?
-      tic.set32(set_rc_neutral_maximum, 2405) # 16 ?
-      tic.set32(set_rc_target_minimum, -2000) 
-      tic.set32(set_rc_target_maximum, 2000)
+      tic.set32(set_starting_speed, 4000)
+      tic.set32(set_max_speed, 200000000)
+      tic.set32(set_max_accel, 200000)
+      tic.set32(set_rc_input_minimum, 916) # 16 ?
+      tic.set32(set_rc_input_maximum, 2080) # 16 ?
+      tic.set32(set_rc_neutral_minimum, 1575) # 16 ?
+      tic.set32(set_rc_neutral_maximum, 1580) # 16 ?
+      tic.set32(set_rc_target_minimum, -200000) 
+      tic.set32(set_rc_target_maximum, 200000)
+      print('Throttle control settings')
+      print('  target min=', tic.get32(set_rc_target_minimum))
+      print('  target max=', tic.get32(set_rc_target_maximum))
     tic.energize()
     tic.errors_occurred()
     tic.exit_safe_start()
@@ -372,8 +390,14 @@ if opts.rc:
 
 if opts.gorc:
   setup_rc(2) # steering control
+  steering = tic
   setup_rc(3) # throttle control
+  throttle = tic
   print('RC mode setup for steering and throttle control')
+  while 1:
+      print('RC pulse width: steering: pos=%0d rc=%0d' % (steering.get_current_position(), int(steering.get16(rc_pulse_width)/12)), 
+                           ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
+      time.sleep(2)
   sys.exit()
 
 position = tic.get_current_position()
