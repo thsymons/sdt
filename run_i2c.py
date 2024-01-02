@@ -7,6 +7,7 @@ from smbus2 import SMBus, i2c_msg
 from argparse import RawTextHelpFormatter
 import RPi.GPIO as GPIO
 from subprocess import call
+import curses
 
 op = argparse.ArgumentParser(allow_abbrev=False, formatter_class=RawTextHelpFormatter, description="""
 Description of script goes here
@@ -255,6 +256,16 @@ class TicI2C(object):
         self.wait(0.5,2)
         self.step(right_step)
         self.wait(0.5,2)
+
+win = curses.initscr()
+
+def getchar():
+    global win
+    while 1:
+        win.addstr(0,0,"input:")
+        ch = chr(win.getch())
+        if ch.lower() == 'q':
+            break
 
 U1_ERR_PIN = 14
 U1_RST_PIN = 25
