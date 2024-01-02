@@ -72,6 +72,9 @@ set_rc_target_minimum = 0x2A
 set_rc_target_maximum = 0x32
 rc_pulse_width = 0x3D
 
+SC_PORT = 3 # steering control
+TC_PORT = 2 # throttle control
+
 # Note: I2C is disabled
 # To enable:  sudo raspi-config nonint do_i2c 0
 # or set to 1 to disable, yes, 1=disable, 0=enable
@@ -358,7 +361,7 @@ def setup_rc(port):
     tic.set32(set_halt_and_set, 100000) # set current position = 0
     tic.set8(set_rc_input_scaling_degree, 1)
     tic.set8(set_rc_invert_input_direction, 1)
-    if port == 2: # steering control
+    if port == TC_PORT: # throttle control
       tic.set32(set_starting_speed, 4000)
       tic.set32(set_max_speed, 100000000)
       tic.set32(set_max_accel, 20000)
@@ -371,7 +374,7 @@ def setup_rc(port):
       print('Steering control settings')
       print('  target min=', tic.get32(set_rc_target_minimum))
       print('  target max=', tic.get32(set_rc_target_maximum))
-    else: # throttle control
+    else: # steering control
       tic.set32(set_starting_speed, 4000)
       tic.set32(set_max_speed, 200000000)
       tic.set32(set_max_accel, 200000)
@@ -410,18 +413,18 @@ if opts.rc:
 
 if opts.setup_rc:
   setup_port(2)
-  setup_rc(2) # steering control
+  setup_rc(2) # throttle control
   setup_port(3)
-  setup_rc(3) # throttle control
+  setup_rc(3) # steering control
   print('RC mode setup for steering and throttle control')
 
 if opts.gorc:
-  setup_port(2)
-  steering = tic
-  report_rc(steering)
-  setup_port(3)
+  setup_port(TC_PORT)
   throttle = tic
   report_rc(throttle)
+  setup_port(SC_PORT)
+  steering = tic
+  report_rc(steering)
   go_rc(steering)
   go_rc(throttle)
   while 1:
@@ -431,9 +434,9 @@ if opts.gorc:
   sys.exit()
 
 if opts.alloff:
-  setup_rc(2)
+  setup_rc(TC_PORT)
   tic.de_energize()
-  setup_rc(3)
+  setup_rc(SC_PORT)
   tic.de_energize()
   sys.exit()
 
