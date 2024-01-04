@@ -23,6 +23,7 @@ op.add_argument('--rc',               help='Enable RC control mode', action='sto
 op.add_argument('--gorc',             help='Enable full RC tractor control', action='store_true')
 op.add_argument('--setup_rc',         help='Setup full RC tractor control', action='store_true')
 op.add_argument('--alloff',           help='De-energize both ports', action='store_true')
+op.add_argument('--getch',            help='Enable getch mode', action='store_true')
 op.add_argument('--mqtt',             help='Setup MQTT control loop',action='store_true')
 op.add_argument('--off',              help='De-energize motor',action='store_true')
 op.add_argument('--on',               help='Energize motor',action='store_true')
@@ -257,16 +258,6 @@ class TicI2C(object):
         self.step(right_step)
         self.wait(0.5,2)
 
-#win = curses.initscr()
-
-def getchar():
-    global win
-    while 1:
-        win.addstr(0,0,"input:")
-        ch = chr(win.getch())
-        if ch.lower() == 'q':
-            break
-
 U1_ERR_PIN = 14
 U1_RST_PIN = 25
 U2_ERR_PIN = 19
@@ -317,6 +308,7 @@ GPIO.output(TC_EN_PIN, 0)
 GPIO.output(GREEN_LED_PIN, 0)
 GPIO.output(RED_LED_PIN, 0)
 GPIO.output(U2_ERR_PIN, 0)
+
 
 if opts.test_gpio:
     print("Running GPIO test loop...")
@@ -454,6 +446,37 @@ if opts.gorc:
 #                           ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
 #      time.sleep(2)
   sys.exit()
+
+if opts.getch:
+  win = curses.initscr()
+  setup_port(TC_PORT)
+  throttle = tic
+  report_rc(throttle)
+  setup_port(SC_PORT)
+  steering = tic
+  report_rc(steering)
+  steering.set32(set_max_speed, 20000000)
+  steering.set32(set_max_accel, 10000)
+  steering.set32(set_max_decel, 100000) # 0->matches acceleration
+  steering.energize()
+  throttle.energize()
+  sc_step = 100
+  tc_step = 100
+  while 1:
+    win.addstr(0,0,"input:")
+    ch = chr(win.getch())
+    if ch == curses.KEY_LEFT:
+      steering.step(-sc_step)
+    elif ch == curses.KEY_RIGHT:
+      steering.step(sc_step)
+    elif ch == curses.KEY_UP:
+      throttle.step(tc_step)
+    elif ch == curses.KEY_DOWN:
+      throttle.step(-tc_step)
+    elif ch.lower() == 'q':
+      break
+  sys.exit()
+
 
 if opts.alloff:
   setup_rc(TC_PORT)
