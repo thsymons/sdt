@@ -447,6 +447,11 @@ if opts.gorc:
 #      time.sleep(2)
   sys.exit()
 
+win = None
+def show_msg(msg):
+  global win
+  win.addstr(5,0,msg)
+
 if opts.getch:
   win = curses.initscr()
   setup_port(TC_PORT)
@@ -462,16 +467,22 @@ if opts.getch:
   throttle.energize()
   sc_step = 100
   tc_step = 100
+  # hjkl for left, down, up, right
   while 1:
+    win.addstr(0,0,"              ")
     win.addstr(0,0,"input:")
     ch = chr(win.getch())
-    if ch == curses.KEY_LEFT:
+    if ch == 'h':
+      show_msg('steer left...')
       steering.step(-sc_step)
-    elif ch == curses.KEY_RIGHT:
+    elif ch == 'l':
+      show_msg('steer right...')
       steering.step(sc_step)
-    elif ch == curses.KEY_UP:
+    elif ch == 'k':
+      show_msg('throttle up...')
       throttle.step(tc_step)
-    elif ch == curses.KEY_DOWN:
+    elif ch == 'j':
+      show_msg('throttle down...')
       throttle.step(-tc_step)
     elif ch.lower() == 'q':
       break
