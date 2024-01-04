@@ -459,6 +459,8 @@ if opts.getch:
   report_rc(throttle)
   setup_port(SC_PORT)
   steering = tic
+  steering.set8(set_command_mode, 0)
+  throttle.set8(set_command_mode, 0)
   report_rc(steering)
   steering.set32(set_max_speed, 20000000)
   steering.set32(set_max_accel, 10000)
