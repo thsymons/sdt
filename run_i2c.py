@@ -472,6 +472,12 @@ if opts.getch:
   steering.set32(set_max_speed, 20000000)
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
+  print('SC max_speed', steering.get32(set_max_speed))
+  print('SC max_accel', steering.get32(set_max_accel))
+  print('SC max_decel', steering.get32(set_max_decel))
+  print('TC max_speed', throttle.get32(set_max_speed))
+  print('TC max_accel', throttle.get32(set_max_accel))
+  print('TC max_decel', throttle.get32(set_max_decel))
   steering.energize()
   throttle.energize()
   sc_step = 100
