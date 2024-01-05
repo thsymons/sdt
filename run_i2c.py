@@ -77,6 +77,14 @@ rc_pulse_width = 0x3D
 SC_PORT = 3 # steering control
 TC_PORT = 2 # throttle control
 
+win = None
+def show_msg(msg, line=0):
+  global win
+  if opts.getch:
+    win.addstr(line+3,0,msg)
+  else:
+    print(msg)
+
 # Note: I2C is disabled
 # To enable:  sudo raspi-config nonint do_i2c 0
 # or set to 1 to disable, yes, 1=disable, 0=enable
@@ -109,7 +117,7 @@ class TicI2C(object):
   def energize(self):
       GPIO.output(self.en_pin, 0)
       self.command(0x85)
-      print("Motor energized")
+      show_msg("Motor energized")
 
   # Sets the target position.
   # For more information about what this command does, see the
@@ -236,16 +244,16 @@ class TicI2C(object):
 
   def wait_for_motor(self, sleep=0.5):
     done = False
-    #print("Wait for motor", end='')
+    show_msg("Wait for motor...")
     while not done:
         time.sleep(sleep)
         velocity = self.get32(get_current_velocity)
         done = True if velocity == 0 else False
         #print(".", end='')
         sys.stdout.flush()
-        #print(f"Current velocity: >{velocity}<")
+        show_msg("Current velocity: %8d    " % velocity, line=1)
         self.command(set_reset_timeout)
-    #print("done")
+    show_msg("Wait for motor...done")
 
   def wait_forever(self, sleep=0.5):
     done = False
@@ -454,11 +462,6 @@ if opts.gorc:
 #      time.sleep(2)
   sys.exit()
 
-win = None
-def show_msg(msg):
-  global win
-  win.addstr(5,0,msg)
-
 if opts.getch:
   setup_port(TC_PORT)
   throttle = tic
@@ -483,8 +486,9 @@ if opts.getch:
   win = curses.initscr()
   steering.energize()
   throttle.energize()
-  sc_step = 100
-  tc_step = 100
+  sc_step = 400
+  tc_step = 400
+  step_inc = 100
   last = SC_PORT
   # hjkl for left, down, up, right
   while 1:
@@ -494,32 +498,32 @@ if opts.getch:
     if ch == 'h':
       show_msg('steer left...')
       steering.go_step(-sc_step)
-      last = SC_STEP
+      last = SC_PORT
     elif ch == 'l':
       show_msg('steer right...')
       steering.go_step(sc_step)
-      last = SC_STEP
+      last = SC_PORT
     elif ch == 'k':
       show_msg('throttle up...')
       throttle.go_step(tc_step)
-      last = TC_STEP
+      last = TC_PORT
     elif ch == 'j':
       show_msg('throttle down...')
       throttle.go_step(-tc_step)
-      last = TC_STEP
+      last = TC_PORT
     elif ch.lower() == '+':
       if last == SC_PORT:
-        sc_step += 100
+        sc_step += step_inc
         show_msg('SC == %0d' % sc_step)
-      else
-        tc_step += 100
+      else:
+        tc_step += step_inc
         show_msg('TC == %0d' % tc_step)
     elif ch.lower() == '-':
       if last == SC_PORT:
         show_msg('SC == %0d' % sc_step)
-        sc_step -= 100
-      else
-        tc_step -= 100
+        sc_step -= step_inc
+      else:
+        tc_step -= step_inc
         show_msg('TC == %0d' % tc_step)
     elif ch.lower() == 'q':
       break
