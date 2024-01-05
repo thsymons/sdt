@@ -472,6 +472,7 @@ if opts.getch:
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
   if opts.stat:
+    print('**** Getch status ****")
     print('SC max_speed', steering.get32(set_max_speed))
     print('SC max_accel', steering.get32(set_max_accel))
     print('SC max_decel', steering.get32(set_max_decel))
