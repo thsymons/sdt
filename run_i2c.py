@@ -116,7 +116,7 @@ class TicI2C(object):
   # "Set target position" command in the "Command reference" section of the
   # Tic user's guide.
   def set_target_position(self, target, sleep=0.5):
-    print("Set target position=", target)
+    #print("Set target position=", target)
     self.command(set_reset_timeout)
     command = [0xE0,
       target >> 0 & 0xFF,
@@ -236,16 +236,16 @@ class TicI2C(object):
 
   def wait_for_motor(self, sleep=0.5):
     done = False
-    print("Wait for motor", end='')
+    #print("Wait for motor", end='')
     while not done:
         time.sleep(sleep)
         velocity = self.get32(get_current_velocity)
         done = True if velocity == 0 else False
-        print(".", end='')
+        #print(".", end='')
         sys.stdout.flush()
         #print(f"Current velocity: >{velocity}<")
         self.command(set_reset_timeout)
-    print("done")
+    #print("done")
 
   def wait_forever(self, sleep=0.5):
     done = False
