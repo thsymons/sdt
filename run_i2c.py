@@ -485,6 +485,7 @@ if opts.getch:
   throttle.energize()
   sc_step = 100
   tc_step = 100
+  last = SC_PORT
   # hjkl for left, down, up, right
   while 1:
     win.addstr(0,0,"              ")
@@ -493,15 +494,33 @@ if opts.getch:
     if ch == 'h':
       show_msg('steer left...')
       steering.go_step(-sc_step)
+      last = SC_STEP
     elif ch == 'l':
       show_msg('steer right...')
       steering.go_step(sc_step)
+      last = SC_STEP
     elif ch == 'k':
       show_msg('throttle up...')
       throttle.go_step(tc_step)
+      last = TC_STEP
     elif ch == 'j':
       show_msg('throttle down...')
       throttle.go_step(-tc_step)
+      last = TC_STEP
+    elif ch.lower() == '+':
+      if last == SC_PORT:
+        sc_step += 100
+        show_msg('SC == %0d' % sc_step)
+      else
+        tc_step += 100
+        show_msg('TC == %0d' % tc_step)
+    elif ch.lower() == '-':
+      if last == SC_PORT:
+        show_msg('SC == %0d' % sc_step)
+        sc_step -= 100
+      else
+        tc_step -= 100
+        show_msg('TC == %0d' % tc_step)
     elif ch.lower() == 'q':
       break
   sys.exit()
