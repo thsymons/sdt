@@ -460,7 +460,6 @@ def show_msg(msg):
   win.addstr(5,0,msg)
 
 if opts.getch:
-  win = curses.initscr()
   setup_port(TC_PORT)
   throttle = tic
   report_rc(throttle)
@@ -472,13 +471,15 @@ if opts.getch:
   steering.set32(set_max_speed, 20000000)
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
-  print('SC max_speed', steering.get32(set_max_speed))
-  print('SC max_accel', steering.get32(set_max_accel))
-  print('SC max_decel', steering.get32(set_max_decel))
-  print('TC max_speed', throttle.get32(set_max_speed))
-  print('TC max_accel', throttle.get32(set_max_accel))
-  print('TC max_decel', throttle.get32(set_max_decel))
-  time.sleep(10)
+  if opts.stat:
+    print('SC max_speed', steering.get32(set_max_speed))
+    print('SC max_accel', steering.get32(set_max_accel))
+    print('SC max_decel', steering.get32(set_max_decel))
+    print('TC max_speed', throttle.get32(set_max_speed))
+    print('TC max_accel', throttle.get32(set_max_accel))
+    print('TC max_decel', throttle.get32(set_max_decel))
+    time.sleep(10)
+  win = curses.initscr()
   steering.energize()
   throttle.energize()
   sc_step = 100
