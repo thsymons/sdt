@@ -220,6 +220,13 @@ class TicI2C(object):
     print("Stepping from %0d to %0d" % (position, target))
     self.set_target_position(target)
 
+  def go_step(self, steps):
+    self.errors_occurred(report=False)
+    self.exit_safe_start()
+    position = self.get_current_position()
+    target = position + steps
+    self.set_target_position(target)
+
   def wait(self, seconds, count):
     for i in range(int(count)):
         self.command(set_reset_timeout)
@@ -476,16 +483,16 @@ if opts.getch:
     ch = chr(win.getch())
     if ch == 'h':
       show_msg('steer left...')
-      steering.step(-sc_step)
+      steering.go_step(-sc_step)
     elif ch == 'l':
       show_msg('steer right...')
-      steering.step(sc_step)
+      steering.go_step(sc_step)
     elif ch == 'k':
       show_msg('throttle up...')
-      throttle.step(tc_step)
+      throttle.go_step(tc_step)
     elif ch == 'j':
       show_msg('throttle down...')
-      throttle.step(-tc_step)
+      throttle.go_step(-tc_step)
     elif ch.lower() == 'q':
       break
   sys.exit()
