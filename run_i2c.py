@@ -478,6 +478,7 @@ if opts.getch:
   print('TC max_speed', throttle.get32(set_max_speed))
   print('TC max_accel', throttle.get32(set_max_accel))
   print('TC max_decel', throttle.get32(set_max_decel))
+  time.sleep(10)
   steering.energize()
   throttle.energize()
   sc_step = 100
