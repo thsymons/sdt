@@ -501,7 +501,7 @@ if opts.getch:
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
   throttle.set32(set_halt_and_set, 40000) # set current position = 0
-  factor = 1 if opts.bench else 10:
+  factor = 1 if opts.bench else 10
   throttle.set32(set_starting_speed, 20000*factor)
   throttle.set32(set_max_speed, 8000000*factor)
   throttle.set32(set_max_accel, 20000*factor)
