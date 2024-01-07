@@ -78,6 +78,7 @@ SC_PORT = 3 # steering control
 TC_PORT = 2 # throttle control
 
 win = None
+last_line = 4
 def show_msg(msg, line=0, clr=False):
   global win
   if opts.getch:
@@ -233,8 +234,8 @@ class TicI2C(object):
     show_msg("Stepping from %0d to %0d" % (position, target), line=2)
     self.set_target_position(target)
 
-  last_line = 4
   def go_step(self, steps):
+    global last_line
     self.errors_occurred(report=False)
     self.exit_safe_start()
     position = self.get_current_position()
@@ -473,6 +474,13 @@ if opts.gorc:
 #      time.sleep(2)
   sys.exit()
 
+def stat(tic):
+  show_msg('**** Getch status ****', clr=True)
+  print('max_speed', tic.get32(set_max_speed))
+  print('max_accel', tic.get32(set_max_accel))
+  print('max_decel', tic.get32(set_max_decel))
+  print('position', tic.get_current_position())
+
 if opts.getch:
   setup_port(TC_PORT)
   throttle = tic
@@ -487,15 +495,6 @@ if opts.getch:
   steering.set32(set_max_speed, 20000000)
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
-  if opts.stat:
-    print('**** Getch status ****')
-    print('SC max_speed', steering.get32(set_max_speed))
-    print('SC max_accel', steering.get32(set_max_accel))
-    print('SC max_decel', steering.get32(set_max_decel))
-    print('TC max_speed', throttle.get32(set_max_speed))
-    print('TC max_accel', throttle.get32(set_max_accel))
-    print('TC max_decel', throttle.get32(set_max_decel))
-    time.sleep(10)
   win = curses.initscr()
   steering.energize()
   throttle.energize()
@@ -505,7 +504,6 @@ if opts.getch:
   last = SC_PORT
   # hjkl for left, down, up, right
   while 1:
-    win.addstr(0,0,"              ")
     win.addstr(0,0,"input:")
     ch = chr(win.getch())
     if ch == 'h':
@@ -538,6 +536,9 @@ if opts.getch:
       else:
         tc_step -= step_inc
         show_msg('TC == %0d' % tc_step, line=3)
+    elif ch == '?':
+      tic = steering if last == SC_PORT else throttle
+      stat(tic)
     elif ch.lower() == 'q':
       break
   sys.exit()
