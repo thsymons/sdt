@@ -225,7 +225,7 @@ class TicI2C(object):
     #self.command(set_reset_timeout)
     position = self.get_current_position()
     target = position + count
-    print("Stepping from %0d to %0d" % (position, target))
+    show_msg("Stepping from %0d to %0d" % (position, target), line=2)
     self.set_target_position(target)
 
   def go_step(self, steps):
@@ -233,6 +233,7 @@ class TicI2C(object):
     self.exit_safe_start()
     position = self.get_current_position()
     target = position + steps
+    show_msg("Stepping from %0d to %0d" % (position, target), line=2)
     self.set_target_position(target)
 
   def wait(self, seconds, count):
@@ -244,16 +245,16 @@ class TicI2C(object):
 
   def wait_for_motor(self, sleep=0.5):
     done = False
-    show_msg("Wait for motor...")
+    #show_msg("Wait for motor...")
     while not done:
         time.sleep(sleep)
         velocity = self.get32(get_current_velocity)
         done = True if velocity == 0 else False
         #print(".", end='')
         sys.stdout.flush()
-        show_msg("Current velocity: %8d    " % velocity, line=1)
+        show_msg("velocity=%8d position=%10d" % (velocity, self.get_current_position()), line=1)
         self.command(set_reset_timeout)
-    show_msg("Wait for motor...done")
+    #show_msg("Wait for motor...done")
 
   def wait_forever(self, sleep=0.5):
     done = False
@@ -487,7 +488,7 @@ if opts.getch:
   steering.energize()
   throttle.energize()
   sc_step = 400
-  tc_step = 400
+  tc_step = 5000
   step_inc = 100
   last = SC_PORT
   # hjkl for left, down, up, right
@@ -496,35 +497,35 @@ if opts.getch:
     win.addstr(0,0,"input:")
     ch = chr(win.getch())
     if ch == 'h':
-      show_msg('steer left...')
+      show_msg('steer left...', line=3)
       steering.go_step(-sc_step)
       last = SC_PORT
     elif ch == 'l':
-      show_msg('steer right...')
+      show_msg('steer right...', line=3)
       steering.go_step(sc_step)
       last = SC_PORT
     elif ch == 'k':
-      show_msg('throttle up...')
+      show_msg('throttle up...', line=3)
       throttle.go_step(tc_step)
       last = TC_PORT
     elif ch == 'j':
-      show_msg('throttle down...')
+      show_msg('throttle down...', line=3)
       throttle.go_step(-tc_step)
       last = TC_PORT
     elif ch.lower() == '+':
       if last == SC_PORT:
         sc_step += step_inc
-        show_msg('SC == %0d' % sc_step)
+        show_msg('SC == %0d' % sc_step, line=3)
       else:
         tc_step += step_inc
-        show_msg('TC == %0d' % tc_step)
+        show_msg('TC == %0d' % tc_step, line=3)
     elif ch.lower() == '-':
       if last == SC_PORT:
-        show_msg('SC == %0d' % sc_step)
+        show_msg('SC == %0d' % sc_step, line=3)
         sc_step -= step_inc
       else:
         tc_step -= step_inc
-        show_msg('TC == %0d' % tc_step)
+        show_msg('TC == %0d' % tc_step, line=3)
     elif ch.lower() == 'q':
       break
   sys.exit()
