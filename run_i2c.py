@@ -500,15 +500,16 @@ if opts.getch:
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
   throttle.set32(set_halt_and_set, 40000) # set current position = 0
-  throttle.set32(set_starting_speed, 20000)
-  throttle.set32(set_max_speed, 8000000)
-  throttle.set32(set_max_accel, 20000)
-  throttle.set32(set_max_decel, 20000) # 0->matches acceleration
+  factor = 1
+  throttle.set32(set_starting_speed, 20000*factor)
+  throttle.set32(set_max_speed, 8000000*factor)
+  throttle.set32(set_max_accel, 20000*factor)
+  throttle.set32(set_max_decel, 20000*factor) # 0->matches acceleration
   win = curses.initscr()
   steering.energize()
   throttle.energize()
   sc_step = 400
-  tc_step = 5000
+  tc_step = 500*factor
   step_inc = 100
   last = SC_PORT
   # hjkl for left, down, up, right
