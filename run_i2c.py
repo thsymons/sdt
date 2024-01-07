@@ -552,6 +552,7 @@ if opts.getch:
       stat(tic)
     elif ch.lower() == 'q':
       break
+  win.endwin()
   sys.exit()
 
 
