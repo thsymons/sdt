@@ -73,6 +73,10 @@ set_rc_input_maximum = 0x28
 set_rc_target_minimum = 0x2A
 set_rc_target_maximum = 0x32
 rc_pulse_width = 0x3D
+get_max_speed = 0x16
+get_max_accel = 0x1E
+get_max_decel = 0x1A
+get_starting_speed = 0x12
 
 SC_PORT = 3 # steering control
 TC_PORT = 2 # throttle control
@@ -430,8 +434,8 @@ def go_rc(tic):
   tic.exit_safe_start()
 
 def report_rc(tic):
-  print('max_speed', tic.get32(set_max_speed))
-  print('max_accel', tic.get32(set_max_accel))
+  print('max_speed', tic.get32(get_max_speed))
+  print('max_accel', tic.get32(get_max_accel))
   print('input_min', tic.get32(set_rc_input_minimum))
   print('input_max', tic.get32(set_rc_input_maximum))
   print('neutral_min', tic.get32(set_rc_neutral_minimum))
@@ -476,9 +480,10 @@ if opts.gorc:
 
 def stat(tic):
   show_msg('**** Getch status ****', clr=True)
-  show_msg('max_speed=%0d' % tic.get32(set_max_speed), 1)
-  show_msg('max_accel=%0d' % tic.get32(set_max_accel), 2)
-  show_msg('max_decel=%0d' % tic.get32(set_max_decel), 3)
+  show_msg('start_speed=%0d' % tic.get32(get_starting_speed), 3)
+  show_msg('max_speed=%0d' % tic.get32(get_max_speed), 1)
+  show_msg('max_accel=%0d' % tic.get32(get_max_accel), 2)
+  show_msg('max_decel=%0d' % tic.get32(get_max_decel), 3)
   show_msg('position=%0d' % tic.get_current_position(), 4)
 
 if opts.getch:
