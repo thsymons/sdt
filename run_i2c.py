@@ -480,11 +480,11 @@ if opts.gorc:
 
 def stat(tic):
   show_msg('**** Getch status ****', clr=True)
-  show_msg('start_speed=%0d' % tic.get32(get_starting_speed), 3)
-  show_msg('max_speed=%0d' % tic.get32(get_max_speed), 1)
-  show_msg('max_accel=%0d' % tic.get32(get_max_accel), 2)
-  show_msg('max_decel=%0d' % tic.get32(get_max_decel), 3)
-  show_msg('position=%0d' % tic.get_current_position(), 4)
+  show_msg('start_speed=%0d' % tic.get32(get_starting_speed), 1)
+  show_msg('max_speed=%0d' % tic.get32(get_max_speed), 2)
+  show_msg('max_accel=%0d' % tic.get32(get_max_accel), 3)
+  show_msg('max_decel=%0d' % tic.get32(get_max_decel), 4)
+  show_msg('position=%0d' % tic.get_current_position(), 5)
 
 if opts.getch:
   setup_port(TC_PORT)
