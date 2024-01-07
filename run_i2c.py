@@ -78,9 +78,14 @@ SC_PORT = 3 # steering control
 TC_PORT = 2 # throttle control
 
 win = None
-def show_msg(msg, line=0):
+def show_msg(msg, line=0, clr=False):
   global win
   if opts.getch:
+    win.addstr(line+3,0,"")
+    if clr:
+      win.clrtobot()
+    else:
+      win.clrtoeol()
     win.addstr(line+3,0,msg)
   else:
     print(msg)
@@ -228,12 +233,17 @@ class TicI2C(object):
     show_msg("Stepping from %0d to %0d" % (position, target), line=2)
     self.set_target_position(target)
 
+  last_line = 4
   def go_step(self, steps):
     self.errors_occurred(report=False)
     self.exit_safe_start()
     position = self.get_current_position()
     target = position + steps
-    show_msg("Stepping from %0d to %0d" % (position, target), line=2)
+    if last_line > 12:
+      last_line = 4
+      show_msg("", last_line, clr=True)
+    show_msg("Stepping from %0d to %0d" % (position, target), line=last_line)
+    last_line += 1
     self.set_target_position(target)
 
   def wait(self, seconds, count):
@@ -472,6 +482,8 @@ if opts.getch:
   steering.set8(set_command_mode, 0)
   throttle.set8(set_command_mode, 0)
   report_rc(steering)
+  steering.set32(set_halt_and_set, 10000) # set current position = 0
+  throttle.set32(set_halt_and_set, 40000) # set current position = 0
   steering.set32(set_max_speed, 20000000)
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
