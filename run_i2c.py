@@ -24,6 +24,7 @@ op.add_argument('--gorc',             help='Enable full RC tractor control', act
 op.add_argument('--setup_rc',         help='Setup full RC tractor control', action='store_true')
 op.add_argument('--alloff',           help='De-energize both ports', action='store_true')
 op.add_argument('--getch',            help='Enable getch mode', action='store_true')
+op.add_argument('--bench',            help='Enable bench motor control', action='store_true')
 op.add_argument('--mqtt',             help='Setup MQTT control loop',action='store_true')
 op.add_argument('--off',              help='De-energize motor',action='store_true')
 op.add_argument('--on',               help='Energize motor',action='store_true')
@@ -500,7 +501,7 @@ if opts.getch:
   steering.set32(set_max_accel, 10000)
   steering.set32(set_max_decel, 100000) # 0->matches acceleration
   throttle.set32(set_halt_and_set, 40000) # set current position = 0
-  factor = 10
+  factor = 1 if opts.bench else 10:
   throttle.set32(set_starting_speed, 20000*factor)
   throttle.set32(set_max_speed, 8000000*factor)
   throttle.set32(set_max_accel, 20000*factor)
