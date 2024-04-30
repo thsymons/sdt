@@ -43,6 +43,7 @@ op.add_argument('--speed',            help='Set max speed')
 op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
 op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
+op.add_argument('--joy_test',         help='Test joystick', action='store_true')
 op.add_argument('--i2c_loop',         help='Infinite write loop to I2C', action='store_true')
 op.add_argument('--shutdown',         help='Wait for shutdown button', action='store_true')
 op.add_argument('-X',                 help='Show commands, but do not execute',action='store_true')
@@ -302,6 +303,11 @@ GREEN_LED_PIN = 22
 RED_LED_PIN = 10
 GO_PIN = 9
 STOP_PIN = 11
+# Joystick control pins
+FWD_PIN = 0
+BACK_PIN = 1
+LEFT_PIN = 9
+RIGHT_PIN = 11
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -334,6 +340,8 @@ GPIO.setup(GREEN_LED_PIN, GPIO.OUT)
 GPIO.setup(RED_LED_PIN, GPIO.OUT)
 GPIO.setup(GO_PIN, GPIO.IN)
 GPIO.setup(STOP_PIN, GPIO.IN)
+GPIO.setup(LEFT_PIN, GPIO.IN)
+GPIO.setup(RIGHT_PIN, GPIO.IN)
 
 GPIO.output(SC_EN_PIN, 0)
 GPIO.output(TC_EN_PIN, 0)
@@ -363,6 +371,19 @@ if opts.test_gpio:
     GPIO.cleanup()
     print("GPIO test loop complete")
     sys.exit()
+
+if opts.joy_test:
+    print("Test joystick inputs...")
+    while True:
+      if GPIO.input(FWD_PIN) == 0:
+        print("Joystick moved: FWD")
+      elif GPIO.input(BACK_PIN) == 0:
+        print("Joystick moved: BACK")
+      elif GPIO.input(LEFT_PIN) == 0:
+        print("Joystick moved: LEFT")
+      elif GPIO.input(RITGHT_PIN) == 0:
+        print("Joystick moved: RIGHT")
+      time.sleep(0.5)
 
 if opts.i2c_loop:
     #GPIO.output(XD_SCL_PIN, GPIO.LOW)
