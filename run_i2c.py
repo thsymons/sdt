@@ -381,7 +381,7 @@ if opts.joy_test:
         print("Joystick moved: BACK")
       elif GPIO.input(LEFT_PIN) == 0:
         print("Joystick moved: LEFT")
-      elif GPIO.input(RITGHT_PIN) == 0:
+      elif GPIO.input(RIGHT_PIN) == 0:
         print("Joystick moved: RIGHT")
       time.sleep(0.5)
 
