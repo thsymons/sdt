@@ -43,7 +43,8 @@ op.add_argument('--speed',            help='Set max speed')
 op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
 op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
-op.add_argument('--joy_test',         help='Test joystick', action='store_true')
+op.add_argument('--joy_test',         help='Test joystick, with motors', action='store_true')
+op.add_argument('--joy_testx',        help='Test joystick, without motors', action='store_true')
 op.add_argument('--i2c_loop',         help='Infinite write loop to I2C', action='store_true')
 op.add_argument('--shutdown',         help='Wait for shutdown button', action='store_true')
 op.add_argument('-X',                 help='Show commands, but do not execute',action='store_true')
@@ -372,7 +373,7 @@ if opts.test_gpio:
     print("GPIO test loop complete")
     sys.exit()
 
-if opts.joy_test:
+if opts.joy_testx:
     print("Test joystick inputs...")
     while True:
       if GPIO.input(FWD_PIN) == 0:
@@ -384,6 +385,19 @@ if opts.joy_test:
       elif GPIO.input(RIGHT_PIN) == 0:
         print("Joystick moved: RIGHT")
       time.sleep(0.5)
+
+if opts.joy_test:
+    print("Test joystick inputs...")
+    while True:
+      tic.exit_safe_start()
+      if GPIO.input(FWD_PIN) == 0:
+        tic.step(opts.step)
+      elif GPIO.input(BACK_PIN) == 0:
+        tic.step(-opts.step)
+      elif GPIO.input(LEFT_PIN) == 0:
+      elif GPIO.input(RIGHT_PIN) == 0:
+      time.sleep(0.5)
+
 
 if opts.i2c_loop:
     #GPIO.output(XD_SCL_PIN, GPIO.LOW)
