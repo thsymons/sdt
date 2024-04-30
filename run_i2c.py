@@ -395,7 +395,9 @@ if opts.joy_test:
       elif GPIO.input(BACK_PIN) == 0:
         tic.step(-opts.step)
       elif GPIO.input(LEFT_PIN) == 0:
+        tic.step(opts.step)
       elif GPIO.input(RIGHT_PIN) == 0:
+        tic.step(-opts.step)
       time.sleep(0.5)
 
 
