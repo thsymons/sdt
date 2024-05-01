@@ -405,11 +405,15 @@ if opts.joy_test:
     print("Test joystick inputs...")
     setup_port(TC_PORT)
     throttle = tic
+    throttle.set32(set_max_speed, 40000000)
+    throttle.set32(set_max_accel, 200000)
     motor_info(throttle, "throttle")
     enable_port(throttle)
     time.sleep(0.5)
     setup_port(SC_PORT)
     steering = tic
+    steering.set32(set_max_speed, 40000000)
+    steering.set32(set_max_accel, 200000)
     motor_info(steering, "steering")
     enable_port(steering)
     time.sleep(0.5)
