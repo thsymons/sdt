@@ -386,6 +386,11 @@ if opts.joy_testx:
         print("Joystick moved: RIGHT")
       time.sleep(0.5)
 
+def enable_port(tic):
+  tic.energize()
+  tic.errors_occurred()
+  tic.exit_safe_start()
+
 def motor_info(tic, msg):
   print(f'Motor info: {msg}')
   print('max_speed', tic.get32(get_max_speed))
@@ -395,10 +400,14 @@ if opts.joy_test:
     print("Test joystick inputs...")
     setup_port(TC_PORT)
     throttle = tic
+    motor_info(throttle, "throttle")
+    enable_port(throttle)
+    time.sleep(0.5)
     setup_port(SC_PORT)
     steering = tic
-    motor_info(throttle, "throttle")
     motor_info(steering, "steering")
+    enable_port(steering)
+    time.sleep(0.5)
     while True:
       tic.exit_safe_start()
       if GPIO.input(FWD_PIN) == 0:
@@ -476,11 +485,6 @@ def setup_rc(port):
       print('  target max=', tic.get32(set_rc_target_maximum))
     time.sleep(1)
 
-def go_rc(tic):
-  tic.energize()
-  tic.errors_occurred()
-  tic.exit_safe_start()
-
 def report_rc(tic):
   print('max_speed', tic.get32(get_max_speed))
   print('max_accel', tic.get32(get_max_accel))
@@ -494,7 +498,7 @@ def report_rc(tic):
 if opts.rc:
   setup_port(port)
   setup_rc(opts.port)
-  go_rc(tic)
+  enable_port(tic)
   print('RC mode setup for port=%s' % 'throttle' if opts.port==3 else 'steering')
   sys.exit()
 
@@ -518,8 +522,8 @@ if opts.gorc:
   #steering.set32(set_rc_target_minimum, -4000) 
   #steering.set32(set_rc_target_maximum, 4000)
   steering.set8(set_command_mode, 2)
-  go_rc(steering)
-  go_rc(throttle)
+  enable_port(steering)
+  enable_port(throttle)
 #  while 1:
 #      print('RC pulse width: steering: pos=%0d rc=%0d' % (steering.get_current_position(), int(steering.get16(rc_pulse_width)/12)), 
 #                           ' throttle: pos=%0d rc=%0d' % (throttle.get_current_position(), int(throttle.get16(rc_pulse_width)/12)))
