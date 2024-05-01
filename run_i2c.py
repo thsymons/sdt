@@ -412,20 +412,22 @@ if opts.joy_test:
     time.sleep(0.5)
     setup_port(SC_PORT)
     steering = tic
-    steering.set32(set_max_speed, 40000000)
-    steering.set32(set_max_accel, 2000000)
+    steering.set32(set_max_speed, 4000000)
+    steering.set32(set_max_accel, 20000)
     motor_info(steering, "steering")
     enable_port(steering)
+    throttle_steps = 1000
+    steering_steps = 4000
     time.sleep(0.5)
     while True:
       if GPIO.input(FWD_PIN) == 0:
-        go_step(throttle, opts.step)
+        go_step(throttle, throttle_steps)
       elif GPIO.input(BACK_PIN) == 0:
-        go_step(throttle, -opts.step)
+        go_step(throttle, -throttle_steps)
       elif GPIO.input(LEFT_PIN) == 0:
-        go_step(steering, opts.step)
+        go_step(steering, steering_steps)
       elif GPIO.input(RIGHT_PIN) == 0:
-        go_step(steering, -opts.step)
+        go_step(steering, -steering_steps)
       time.sleep(0.5)
 
 if opts.i2c_loop:
