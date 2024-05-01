@@ -396,6 +396,11 @@ def motor_info(tic, msg):
   print('max_speed', tic.get32(get_max_speed))
   print('max_accel', tic.get32(get_max_accel))
 
+def go_step(tic, steps)
+  tic.errors_occurred(report=False)
+  tic.exit_safe_start()
+  tic.step(steps)
+
 if opts.joy_test:
     print("Test joystick inputs...")
     setup_port(TC_PORT)
@@ -409,15 +414,14 @@ if opts.joy_test:
     enable_port(steering)
     time.sleep(0.5)
     while True:
-      tic.exit_safe_start()
       if GPIO.input(FWD_PIN) == 0:
-        throttle.step(opts.step)
+        go_step(throttle, opts.step)
       elif GPIO.input(BACK_PIN) == 0:
-        throttle.step(-opts.step)
+        go_step(throttle, -opts.step)
       elif GPIO.input(LEFT_PIN) == 0:
-        steering.step(opts.step)
+        go_step(steering, opts.step)
       elif GPIO.input(RIGHT_PIN) == 0:
-        steering.step(-opts.step)
+        go_step(steering, -opts.step)
       time.sleep(0.5)
 
 if opts.i2c_loop:
