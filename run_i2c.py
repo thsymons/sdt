@@ -396,7 +396,7 @@ def motor_info(tic, msg):
   print('max_speed', tic.get32(get_max_speed))
   print('max_accel', tic.get32(get_max_accel))
 
-def go_step(tic, steps)
+def go_step(tic, steps):
   tic.errors_occurred(report=False)
   tic.exit_safe_start()
   tic.step(steps)
