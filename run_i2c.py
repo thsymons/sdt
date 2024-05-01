@@ -413,7 +413,7 @@ if opts.joy_test:
     setup_port(SC_PORT)
     steering = tic
     steering.set32(set_max_speed, 40000000)
-    steering.set32(set_max_accel, 200000)
+    steering.set32(set_max_accel, 2000000)
     motor_info(steering, "steering")
     enable_port(steering)
     time.sleep(0.5)
