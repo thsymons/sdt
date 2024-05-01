@@ -324,6 +324,7 @@ def setup_port(port):
       i2c = SMBus(4)
       en_pin = SC_EN_PIN
   tic = TicI2C(i2c, dev_addr, en_pin)
+  return tic
 
 if not (opts.gorc or opts.setup_rc or opts.rc):
   setup_port(opts.port)
@@ -388,18 +389,19 @@ if opts.joy_testx:
 
 if opts.joy_test:
     print("Test joystick inputs...")
+    throttle = setup_port(TC_PORT)
+    steering = setup_port(SC_PORT)
     while True:
       tic.exit_safe_start()
       if GPIO.input(FWD_PIN) == 0:
-        tic.step(opts.step)
+        throttle.step(opts.step)
       elif GPIO.input(BACK_PIN) == 0:
-        tic.step(-opts.step)
+        throttle.step(-opts.step)
       elif GPIO.input(LEFT_PIN) == 0:
-        tic.step(opts.step)
+        steering.step(opts.step)
       elif GPIO.input(RIGHT_PIN) == 0:
-        tic.step(-opts.step)
+        steering.step(-opts.step)
       time.sleep(0.5)
-
 
 if opts.i2c_loop:
     #GPIO.output(XD_SCL_PIN, GPIO.LOW)
