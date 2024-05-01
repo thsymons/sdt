@@ -386,12 +386,19 @@ if opts.joy_testx:
         print("Joystick moved: RIGHT")
       time.sleep(0.5)
 
+def motor_info(tic, msg):
+  print(f'Motor info: {msg}')
+  print('max_speed', tic.get32(get_max_speed))
+  print('max_accel', tic.get32(get_max_accel))
+
 if opts.joy_test:
     print("Test joystick inputs...")
     setup_port(TC_PORT)
     throttle = tic
     setup_port(SC_PORT)
     steering = tic
+    motor_info(throttle, "throttle")
+    motor_info(steering, "steering")
     while True:
       tic.exit_safe_start()
       if GPIO.input(FWD_PIN) == 0:
