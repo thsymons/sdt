@@ -433,6 +433,7 @@ if opts.ssa is not None:
     setup_port(opts.port)
     tic.errors_occurred(report=False)
     tic.exit_safe_start()
+    tic.set32(set_starting_speed, 4000)
     tic.set32(set_max_speed, int(speed))
     tic.set32(set_max_accel, int(acc))
     time.sleep(0.5)
