@@ -429,15 +429,20 @@ if opts.joy_test:
       time.sleep(0.5)
 
 if opts.ssa is not None:
-    step, speed, acc = opts.ssa.split(',')
+    args  = opts.ssa.split(',')
+    step  = int(args[0])
+    speed = int(args[1]) if len(args) > 1 else 40000000
+    acc   = int(args[2]) if len(args) > 2 else 200000
+    start = int(args[3]) if len(args) > 3 else 4000
+    printf(f'step={step} speed={speed} acc={acc} start={start}')
     setup_port(opts.port)
     tic.errors_occurred(report=False)
     tic.exit_safe_start()
-    tic.set32(set_starting_speed, 4000)
-    tic.set32(set_max_speed, int(speed))
-    tic.set32(set_max_accel, int(acc))
+    tic.set32(set_starting_speed, start)
+    tic.set32(set_max_speed, speed)
+    tic.set32(set_max_accel, acc)
     time.sleep(0.5)
-    tic.step(int(step))
+    tic.step(step)
     sys.exit()
 
 if not (opts.gorc or opts.setup_rc or opts.rc):
