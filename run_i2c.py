@@ -13,7 +13,7 @@ op = argparse.ArgumentParser(allow_abbrev=False, formatter_class=RawTextHelpForm
 Description of script goes here
 """)
 
-op.add_argument('--port',             help='Select motor - t or s, defaults to t', default='t', choices['t', 's'])
+op.add_argument('--port',             help='Select motor - t or s, defaults to t', default='t', choices=['t', 's'])
 op.add_argument('--set',              help='Set offset,data')
 op.add_argument('--clr',              help='Clear errors occurred, reset timeout', action='store_true')
 op.add_argument('--stop',             help='Stop and set position', type=int)
