@@ -429,7 +429,7 @@ if opts.joy_test:
       time.sleep(0.5)
 
 if opts.ssa is not None:
-    step, speed, acc = opts.ssa.split(','
+    step, speed, acc = opts.ssa.split(',')
     setup_port(opts.port)
     tic.errors_occurred(report=False)
     tic.exit_safe_start()
