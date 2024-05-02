@@ -13,7 +13,7 @@ op = argparse.ArgumentParser(allow_abbrev=False, formatter_class=RawTextHelpForm
 Description of script goes here
 """)
 
-op.add_argument('--port',             help='2=T249, 3=36v4 (defaults to port 3)', type=int, default=3)
+op.add_argument('--port',             help='Select motor - t or s, defaults to t', default='t', choices['t', 's'])
 op.add_argument('--set',              help='Set offset,data')
 op.add_argument('--clr',              help='Clear errors occurred, reset timeout', action='store_true')
 op.add_argument('--stop',             help='Stop and set position', type=int)
@@ -40,6 +40,7 @@ op.add_argument('--step_mode', '-sm', help='Set step mode - full,1,2,4,8,16,32 '
 op.add_argument('--set_position',     help='Set current position')
 op.add_argument('--acc',              help='Set acceleration')
 op.add_argument('--speed',            help='Set max speed')
+op.add_argument('--ssa',              help='Set step, speed, acceleration')
 op.add_argument('--reset',            help='Reset TIC', action='store_true')
 op.add_argument('--test',             help='Run test routine', action='store_true')
 op.add_argument('--test_gpio',        help='Run gpio test loop', action='store_true')
@@ -317,16 +318,13 @@ tic = None
 dev_addr = 14
 def setup_port(port):
   global tic
-  if port == 3:
+  if port == 's':
       i2c = SMBus(1)
       en_pin = TC_EN_PIN
   else:
       i2c = SMBus(4)
       en_pin = SC_EN_PIN
   tic = TicI2C(i2c, dev_addr, en_pin)
-
-if not (opts.gorc or opts.setup_rc or opts.rc):
-  setup_port(opts.port)
 
 # Configure GPIO pins
 GPIO.setup(U1_ERR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -412,8 +410,8 @@ if opts.joy_test:
     time.sleep(0.5)
     setup_port(SC_PORT)
     steering = tic
-    steering.set32(set_max_speed, 4000000)
-    steering.set32(set_max_accel, 20000)
+    steering.set32(set_max_speed, 40000000)
+    steering.set32(set_max_accel, 200000)
     motor_info(steering, "steering")
     enable_port(steering)
     throttle_steps = 1000
@@ -429,6 +427,20 @@ if opts.joy_test:
       elif GPIO.input(RIGHT_PIN) == 0:
         go_step(steering, -steering_steps)
       time.sleep(0.5)
+
+if opts.ssa is not None:
+    step, speed, acc = opts.ssa.split(','
+    setup_port(opts.port)
+    tic.errors_occurred(report=False)
+    tic.exit_safe_start()
+    tic.set32(set_max_speed, speed)
+    tic.set32(set_max_accel, acc)
+    time.sleep(0.5)
+    tic.step(step)
+    sys.exit()
+
+if not (opts.gorc or opts.setup_rc or opts.rc):
+  setup_port(opts.port)
 
 if opts.i2c_loop:
     #GPIO.output(XD_SCL_PIN, GPIO.LOW)
