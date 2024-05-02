@@ -436,7 +436,7 @@ if opts.ssa is not None:
     tic.set32(set_max_speed, int(speed))
     tic.set32(set_max_accel, int(acc))
     time.sleep(0.5)
-    tic.step(step)
+    tic.step(int(step))
     sys.exit()
 
 if not (opts.gorc or opts.setup_rc or opts.rc):
