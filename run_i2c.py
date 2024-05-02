@@ -434,7 +434,7 @@ if opts.ssa is not None:
     speed = int(args[1]) if len(args) > 1 else 40000000
     acc   = int(args[2]) if len(args) > 2 else 200000
     start = int(args[3]) if len(args) > 3 else 4000
-    printf(f'step={step} speed={speed} acc={acc} start={start}')
+    print(f'step={step} speed={speed} acc={acc} start={start}')
     setup_port(opts.port)
     tic.errors_occurred(report=False)
     tic.exit_safe_start()
