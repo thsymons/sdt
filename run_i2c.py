@@ -324,6 +324,7 @@ def setup_port(port):
   else:
       i2c = SMBus(4)
       en_pin = SC_EN_PIN
+  print(f'Setup port=%s', port)
   tic = TicI2C(i2c, dev_addr, en_pin)
 
 # Configure GPIO pins
@@ -436,8 +437,7 @@ if opts.ssa is not None:
     start = int(args[3]) if len(args) > 3 else 4000
     print(f'step={step} speed={speed} acc={acc} start={start}')
     setup_port(opts.port)
-    tic.errors_occurred(report=False)
-    tic.exit_safe_start()
+    enable_port(tic)
     tic.set32(set_starting_speed, start)
     tic.set32(set_max_speed, speed)
     tic.set32(set_max_accel, acc)
