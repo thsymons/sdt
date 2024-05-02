@@ -415,7 +415,7 @@ if opts.joy_test:
     motor_info(steering, "steering")
     enable_port(steering)
     throttle_steps = 1000
-    steering_steps = 4000
+    steering_steps = 1000
     time.sleep(0.5)
     while True:
       if GPIO.input(FWD_PIN) == 0:
